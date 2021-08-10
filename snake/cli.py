@@ -2,6 +2,8 @@
 
 import click
 
+from snake.main import MainApp
+
 
 @click.group()
 def cli():
@@ -10,4 +12,5 @@ def cli():
 
 @cli.command()
 def run():
-    print("Hello")
+    main = MainApp()
+    main.execute()
