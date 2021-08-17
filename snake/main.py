@@ -10,12 +10,12 @@ class MainApp:
 
     CAPTION = "Snake v0.1"
 
-    WIDTH = 1000
-    HEIGHT = 1000
+    WIDTH = 800
+    HEIGHT = 800
 
     BG_COLOR = (0x00, 0x00, 0x00)
 
-    GRID_SIZE = 100
+    GRID_SIZE = 20
     GRID_COLOR = (0xFF, 0x00, 0x00)
     GRID_WIDTH = 1
 
