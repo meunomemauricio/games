@@ -1,5 +1,4 @@
 """Main."""
-
 import pygame
 from pygame.rect import Rect
 
@@ -27,7 +26,7 @@ class MainApp:
 
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
 
-        self.snake = Snake()
+        self.snake = Snake(grid_size=self.GRID_SIZE)
 
     def draw_grid(self):
         for x in range(0, self.WIDTH, self.GRID_SIZE):
@@ -49,7 +48,7 @@ class MainApp:
                 if event.type == pygame.QUIT:
                     running = False
 
-            self.screen.blit(source=self.snake.sprite, dest=self.snake.pos)
+            self.snake.draw(surface=self.screen)
 
             self.snake.inc_x()
             self.snake.inc_y()
