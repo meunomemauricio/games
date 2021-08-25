@@ -9,7 +9,6 @@ from pygame.rect import Rect
 class Snake:
     """Snake."""
 
-    SPRITE = "icon2.png"
     HEAD_COLOR = (0x00, 0xFF, 0x00)
 
     def __init__(self, grid_size: int):
