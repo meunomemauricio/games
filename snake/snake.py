@@ -20,10 +20,10 @@ class Snake:
     def pos(self) -> Tuple[int, int]:
         return self._x, self._y
 
-    def inc_x(self):
+    def inc_x(self) -> None:
         self._x += 1
 
-    def inc_y(self):
+    def inc_y(self) -> None:
         self._y += 1
 
     def draw(self, surface: Surface):

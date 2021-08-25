@@ -6,6 +6,7 @@ from snake.snake import Snake
 
 
 class MainApp:
+    """Main application."""
 
     CAPTION = "Snake v0.1"
 
@@ -19,38 +20,42 @@ class MainApp:
     GRID_WIDTH = 1
 
     def __init__(self):
+        self._running = True
+
         pygame.init()
 
         # TODO: Add Logo
         pygame.display.set_caption(self.CAPTION)
 
-        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self._screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self._snake = Snake(grid_size=self.GRID_SIZE)
 
-        self.snake = Snake(grid_size=self.GRID_SIZE)
-
-    def draw_grid(self):
+    def draw_grid(self) -> None:
+        """Draw grid."""
         for x in range(0, self.WIDTH, self.GRID_SIZE):
             for y in range(0, self.HEIGHT, self.GRID_SIZE):
                 pygame.draw.rect(
-                    surface=self.screen,
+                    surface=self._screen,
                     color=self.GRID_COLOR,
                     rect=Rect(x, y, self.GRID_SIZE, self.GRID_SIZE),
                     width=self.GRID_WIDTH,
                 )
 
+    def handle_events(self) -> None:
+        """Handle events."""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self._running = False
+
     def execute(self):
-        running = True
-        while running:
-            self.screen.fill(color=self.BG_COLOR)
+        """Application main loop."""
+        while self._running:
+            self.handle_events()
+
+            self._snake.inc_x()
+            self._snake.inc_y()
+            
+            self._screen.fill(color=self.BG_COLOR)
             self.draw_grid()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-
-            self.snake.draw(surface=self.screen)
-
-            self.snake.inc_x()
-            self.snake.inc_y()
-
+            self._snake.draw(surface=self._screen)
             pygame.display.flip()
