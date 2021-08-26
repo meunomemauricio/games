@@ -46,14 +46,20 @@ class MainApp:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    self._snake.move_y(step=-1)
+                if event.key == pygame.K_DOWN:
+                    self._snake.move_y(step=1)
+                if event.key == pygame.K_RIGHT:
+                    self._snake.move_x(step=1)
+                if event.key == pygame.K_LEFT:
+                    self._snake.move_x(step=-1)
 
     def execute(self):
         """Application main loop."""
         while self._running:
             self.handle_events()
-
-            self._snake.inc_x()
-            self._snake.inc_y()
             
             self._screen.fill(color=self.BG_COLOR)
             self.draw_grid()
