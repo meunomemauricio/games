@@ -2,6 +2,7 @@
 
 import click
 
+from snake.experimental import MainApp as ExperimentalMainApp
 from snake.main import MainApp
 
 
@@ -14,3 +15,8 @@ def cli():
 def run():
     main = MainApp()
     main.execute()
+
+
+@cli.command()
+def experimental():
+    ExperimentalMainApp().execute()
