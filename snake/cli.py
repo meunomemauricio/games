@@ -18,5 +18,7 @@ def run():
 
 
 @cli.command()
-def experimental():
-    ExperimentalMainApp().execute()
+@click.option("-b", "--blueprint", default="blocks")
+@click.option("--grid/--no-grid", default=False)
+def experimental(blueprint: str, grid: bool):
+    ExperimentalMainApp(bp_name=blueprint, grid=grid).execute()
