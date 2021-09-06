@@ -38,8 +38,8 @@ class MainApp:
         """A surface representing the Grid."""
         # FIXME: Grid has black background
         grid_surface = Surface(self._bp.size)
-        for x in range(0, self._bp.size[0], self._bp.block_size[0]):
-            for y in range(0, self._bp.size[1], self._bp.block_size[1]):
+        for x in range(0, self._bp.size[0], self._bp.block_size.x):
+            for y in range(0, self._bp.size[1], self._bp.block_size.y):
                 pygame.draw.rect(
                     surface=grid_surface,
                     color=self.GRID_COLOR,

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 import pygame
+from pygame.math import Vector2
 from pygame.surface import Surface
 
 PINK = (0xFF, 0x00, 0xFF)
@@ -48,11 +49,11 @@ class Blueprint:
         return len(self.terrain)
 
     @property
-    def block_size(self) -> Tuple[int, int]:
+    def block_size(self) -> Vector2:
         """Size, in pixels, of a single block unit."""
-        return (
-            self._data["block"]["width"],
-            self._data["block"]["height"],
+        return Vector2(
+            x=self._data["block"]["width"],
+            y=self._data["block"]["height"],
         )
 
     @property
