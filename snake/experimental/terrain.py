@@ -66,34 +66,14 @@ class Blueprint:
 
 class Terrain:
 
-    GRID_COLOR = (0x55, 0x55, 0x55)
-    GRID_WIDTH = 1
-
     SPACE_CHAR = " "
 
     CHAR_MAPPING: Dict[str, Color] = {
         "*": (0xAA, 0xAA, 0xAA),
     }
 
-    def __init__(self, blueprint: Blueprint, grid: bool):
+    def __init__(self, blueprint: Blueprint):
         self._bp = blueprint
-        self._grid = grid
-
-    @cached_property
-    def grid_surface(self) -> Surface:
-        """A surface representing the Grid."""
-        # FIXME: Grid has black background
-        grid_surface = Surface(self._bp.size)
-        for x in range(0, self._bp.size[0], self._bp.block_size[0]):
-            for y in range(0, self._bp.size[1], self._bp.block_size[1]):
-                pygame.draw.rect(
-                    surface=grid_surface,
-                    color=self.GRID_COLOR,
-                    rect=pygame.Rect((x, y), self._bp.block_size),
-                    width=self.GRID_WIDTH,
-                )
-
-        return grid_surface
 
     def draw_terrain(self) -> Surface:
         surface = Surface(self._bp.size)
@@ -111,13 +91,10 @@ class Terrain:
 
         return surface
 
-    @property
+    @cached_property
     def surface(self) -> Surface:
         """Fully drawn map as a Surface."""
-        # TODO: Use .blits()
+        # TODO: Use .blits() when drawing many things
         terrain_surface = Surface(size=self._bp.size)
         terrain_surface.blit(source=self.draw_terrain(), dest=(0, 0))
-        if self._grid:
-            terrain_surface.blit(source=self.grid_surface, dest=(0, 0))
-
         return terrain_surface
