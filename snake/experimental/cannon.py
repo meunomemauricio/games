@@ -1,6 +1,7 @@
 """Define the Cannon entity."""
 from typing import Optional
 
+import pygame
 from pygame import draw
 from pygame.math import Vector2
 from pygame.surface import Surface
@@ -21,26 +22,22 @@ class Cannon:
         """
         self._bp = blueprint
 
-        self._loc: Optional[Vector2] = None
         self._pos: Optional[Vector2] = None
+
+        #: Location in the Grid.
+        self.loc: Vector2 = self._find_in_blueprint()
+
+        #: Aim Direction
+        self.aim = Vector2()
+        self.aim.from_polar((30, -45))
 
     def _find_in_blueprint(self) -> Vector2:
         """Determine the initial position using the Blueprint."""
-        for y, row in enumerate(self._bp.terrain):
-            x = row.find(self.CHAR)
-            if x != -1:
-                return Vector2(
-                    x=x * self._bp.block_size[0],
-                    y=y * self._bp.block_size[1],
-                )
-
-    @property
-    def loc(self) -> Vector2:
-        """Location in the Grid."""
-        if self._loc is None:
-            self._loc = self._find_in_blueprint()
-
-        return self._loc
+        for i, row in enumerate(self._bp.terrain):
+            try:
+                return Vector2(x=row.index(self.CHAR), y=i)
+            except ValueError:
+                continue
 
     @property
     def pos(self) -> Vector2:
@@ -58,10 +55,17 @@ class Cannon:
 
         :return: Cannon Surface.
         """
-        surface = Surface(size=self._bp.block_size)
-        draw.rect(
+        surface = Surface(size=self._bp.size, flags=pygame.SRCALPHA)
+        draw.rect(  # Base
             surface=surface,
             color=self.COLOR,
-            rect=((0, 0), self._bp.block_size),
+            rect=(self.pos, self._bp.block_size),
+        )
+        draw.line(  # Aim
+            surface=surface,
+            color=self.COLOR,
+            start_pos=self.pos + Vector2(25, 10),
+            end_pos=self.pos + Vector2(25, 10) + self.aim,
+            width=5,
         )
         return surface

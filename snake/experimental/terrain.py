@@ -71,13 +71,17 @@ class Terrain:
 
     CHAR_MAPPING: Dict[str, Color] = {
         "*": (0xAA, 0xAA, 0xAA),
+        "H": (0x00, 0x00, 0x00),
     }
 
     def __init__(self, blueprint: Blueprint):
         self._bp = blueprint
 
-    def draw_terrain(self) -> Surface:
-        surface = Surface(self._bp.size)
+    @cached_property
+    def surface(self) -> Surface:
+        """Fully drawn map as a Surface."""
+        # TODO: Use .blits()
+        surface = Surface(size=self._bp.size, flags=pygame.SRCALPHA)
         for j, row in enumerate(self._bp.terrain):
             for i, char in enumerate(row):
                 if char == self.SPACE_CHAR:
@@ -91,11 +95,3 @@ class Terrain:
                 )
 
         return surface
-
-    @cached_property
-    def surface(self) -> Surface:
-        """Fully drawn map as a Surface."""
-        # TODO: Use .blits() when drawing many things
-        terrain_surface = Surface(size=self._bp.size)
-        terrain_surface.blit(source=self.draw_terrain(), dest=(0, 0))
-        return terrain_surface

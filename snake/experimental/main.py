@@ -13,7 +13,7 @@ class MainApp:
 
     BG_COLOR = (0x00, 0x00, 0x00)
 
-    GRID_COLOR = (0x55, 0x55, 0x55)
+    GRID_COLOR = (0xFF, 0xFF, 0xFF)
     GRID_WIDTH = 1
 
     def __init__(self, bp_name: str, grid: bool):
@@ -36,18 +36,18 @@ class MainApp:
     @cached_property
     def grid_surface(self) -> Surface:
         """A surface representing the Grid."""
-        # FIXME: Grid has black background
-        grid_surface = Surface(self._bp.size)
-        for x in range(0, self._bp.size[0], self._bp.block_size.x):
-            for y in range(0, self._bp.size[1], self._bp.block_size.y):
+        surface = Surface(size=self._bp.size, flags=pygame.SRCALPHA)
+        surface.set_alpha(50)
+        for x in range(0, self._bp.size[0], int(self._bp.block_size.x)):
+            for y in range(0, self._bp.size[1], int(self._bp.block_size.y)):
                 pygame.draw.rect(
-                    surface=grid_surface,
+                    surface=surface,
                     color=self.GRID_COLOR,
                     rect=pygame.Rect((x, y), self._bp.block_size),
                     width=self.GRID_WIDTH,
                 )
 
-        return grid_surface
+        return surface
 
     def handle_input(self) -> None:
         for event in pygame.event.get():
@@ -56,8 +56,9 @@ class MainApp:
 
     def handle_graphics(self) -> None:
         self._screen.fill(color=self.BG_COLOR)
+        # TODO: Use .blits()
         self._screen.blit(source=self._terrain.surface, dest=(0, 0))
-        self._screen.blit(source=self._hero.surface, dest=self._hero.pos)
+        self._screen.blit(source=self._hero.surface, dest=(0, 0))
         if self._grid:
             self._screen.blit(source=self.grid_surface, dest=(0, 0))
 
