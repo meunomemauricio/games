@@ -17,7 +17,10 @@ Color = Tuple[int, int, int]
 
 
 class Blueprint:
+    """Terrain Blueprint."""
+
     def __init__(self, name: str):
+        """Represent the Terrain as a blueprint."""
         self._name = name
 
         # TODO: Verify if all rows have same width
@@ -66,6 +69,7 @@ class Blueprint:
 
 
 class Terrain:
+    """Terrain Renderer."""
 
     SPACE_CHAR = " "
 
@@ -75,6 +79,7 @@ class Terrain:
     }
 
     def __init__(self, blueprint: Blueprint):
+        """Render the Terrain, following the Blueprint."""
         self._bp = blueprint
 
     @cached_property

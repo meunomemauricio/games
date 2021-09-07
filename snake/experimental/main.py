@@ -4,6 +4,7 @@ import pygame
 from pygame.event import Event
 from pygame.surface import Surface
 
+from snake.experimental.projectile import ProjectileManager
 from snake.experimental.terrain import Blueprint, Terrain
 from snake.experimental.turret import Turret
 
@@ -16,6 +17,7 @@ class MainApp:
 
     GRID_COLOR = (0xFF, 0xFF, 0xFF)
     GRID_WIDTH = 1
+    GRID_ALPHA = 50
 
     def __init__(self, bp_name: str, debug: bool, grid: bool):
         """Main Application.
@@ -32,22 +34,28 @@ class MainApp:
 
         self._running = True
 
-        self._bp = Blueprint(name=bp_name)
-        self._screen = pygame.display.set_mode(size=self._bp.size)
-        self._terrain = Terrain(blueprint=self._bp)
-        self._hero = Turret(blueprint=self._bp)
+        self._blueprint = Blueprint(name=bp_name)
+
+        self._screen = pygame.display.set_mode(size=self._blueprint.size)
+
+        self._terrain = Terrain(blueprint=self._blueprint)
+
+        self._proj_mgmt = ProjectileManager(blueprint=self._blueprint)
+        self._hero = Turret(blueprint=self._blueprint, pm=self._proj_mgmt)
 
     @cached_property
     def grid_surface(self) -> Surface:
         """A surface representing the Grid."""
-        surface = Surface(size=self._bp.size, flags=pygame.SRCALPHA)
-        surface.set_alpha(50)
-        for x in range(0, self._bp.size[0], int(self._bp.block_size.x)):
-            for y in range(0, self._bp.size[1], int(self._bp.block_size.y)):
+        block_size = self._blueprint.block_size
+        size = self._blueprint.size
+        surface = Surface(size=self._blueprint.size, flags=pygame.SRCALPHA)
+        surface.set_alpha(self.GRID_ALPHA)
+        for x in range(0, size[0], int(block_size.x)):
+            for y in range(0, size[1], int(block_size.y)):
                 pygame.draw.rect(
                     surface=surface,
                     color=self.GRID_COLOR,
-                    rect=pygame.Rect((x, y), self._bp.block_size),
+                    rect=pygame.Rect((x, y), self._blueprint.block_size),
                     width=self.GRID_WIDTH,
                 )
 
@@ -69,14 +77,15 @@ class MainApp:
             self._handle_quit(event=event)
 
     def handle_graphics(self) -> None:
-        self._screen.fill(color=self.BG_COLOR)
         layers = [
             (self._terrain.surface, (0, 0)),
-            (self._hero.surface, self._hero.pos),
+            (self._proj_mgmt.surface, (0, 0)),
+            (self._hero.surface, self._hero.render_pos),
         ]
         if self._grid:
             layers.append((self.grid_surface, (0, 0)))
 
+        self._screen.fill(color=self.BG_COLOR)
         self._screen.blits(layers)
         pygame.display.flip()
 
