@@ -62,8 +62,7 @@ class Turret:
 
     def _fire_turret(self) -> None:
         """Fire a Projectile from the Turret."""
-        speed = 10
-        self._pm.create_projectile(pos=self.pos, speed=self.aim * speed)
+        self._pm.create_projectile(dir=self.aim, pos=self.pos)
 
     @property
     def center(self) -> Vector2:

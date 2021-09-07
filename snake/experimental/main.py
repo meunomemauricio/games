@@ -76,7 +76,10 @@ class MainApp:
             self._hero.handle_event(event=event)
             self._handle_quit(event=event)
 
-    def handle_graphics(self) -> None:
+    def process_logic(self) -> None:
+        self._proj_mgmt.process_logic()
+
+    def render_graphics(self) -> None:
         layers = [
             (self._terrain.surface, (0, 0)),
             (self._proj_mgmt.surface, (0, 0)),
@@ -92,4 +95,5 @@ class MainApp:
     def execute(self) -> None:
         while self._running:
             self.handle_input()
-            self.handle_graphics()
+            self.process_logic()
+            self.render_graphics()

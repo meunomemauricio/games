@@ -12,7 +12,7 @@ from snake.experimental.terrain import Blueprint
 class Projectile:
     """Projectile."""
 
-    def __init__(self, blueprint: Blueprint, pos: Vector2, speed: Vector2):
+    def __init__(self, blueprint: Blueprint, dir: Vector2, pos: Vector2):
         """Simulates a Projectile from the Turret.
 
         :param blueprint: Terrain Blueprint.
@@ -20,8 +20,8 @@ class Projectile:
         :param speed: Initial Speed Vector, in screen coordinates.
         """
         self._blueprint = blueprint
+        self._dir = dir
         self._pos = pos
-        self._speed = speed
 
     @property
     def color(self) -> Tuple[int, int, int]:
@@ -38,6 +38,16 @@ class Projectile:
         """Projectile Radius."""
         return 5
 
+    @property
+    def speed(self) -> float:
+        return 1.0
+
+    def process_logic(self) -> None:
+        """Process the Projectile logic and update its status."""
+        # TODO: Detect collisions
+        # TODO: TOO F***ING QUICK!
+        self._pos += self._dir * self.speed
+
 
 class ProjectileManager:
     """Projectile Manager."""
@@ -50,17 +60,6 @@ class ProjectileManager:
         self._blueprint = blueprint
 
         self._projectiles: List[Projectile] = []
-
-    def create_projectile(self, pos: Vector2, speed: Vector2) -> None:
-        """Create a Projectile and add it to the list.
-
-        :param pos: Initial Position, in screen coordinates.
-        :param speed: Initial Speed Vector, in screen coordinates.
-        """
-        print(f"{pos} | {speed}")
-        self._projectiles.append(
-            Projectile(blueprint=self._blueprint, pos=pos, speed=speed)
-        )
 
     @property
     def surface(self) -> Surface:
@@ -75,3 +74,18 @@ class ProjectileManager:
             )
 
         return surface
+
+    def create_projectile(self, dir: Vector2, pos: Vector2) -> None:
+        """Create a Projectile and add it to the list.
+
+        :param dir: Initial Direction, in screen coordinates.
+        :param pos: Initial Position, in screen coordinates.
+        """
+        self._projectiles.append(
+            Projectile(blueprint=self._blueprint, dir=dir, pos=pos)
+        )
+
+    def process_logic(self) -> None:
+        """Process logic and update status."""
+        for proj in self._projectiles:
+            proj.process_logic()
