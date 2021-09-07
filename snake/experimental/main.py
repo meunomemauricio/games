@@ -36,7 +36,7 @@ class MainApp:
 
         self._blueprint = Blueprint(name=bp_name)
 
-        self._screen = pygame.display.set_mode(size=self._blueprint.size)
+        self._screen = pygame.display.set_mode(size=self._blueprint.rect.size)
 
         self._terrain = Terrain(blueprint=self._blueprint)
 
@@ -47,8 +47,8 @@ class MainApp:
     def grid_surface(self) -> Surface:
         """A surface representing the Grid."""
         block_size = self._blueprint.block_size
-        size = self._blueprint.size
-        surface = Surface(size=self._blueprint.size, flags=pygame.SRCALPHA)
+        size = self._blueprint.rect.size
+        surface = Surface(size=size, flags=pygame.SRCALPHA)
         surface.set_alpha(self.GRID_ALPHA)
         for x in range(0, size[0], int(block_size.x)):
             for y in range(0, size[1], int(block_size.y)):

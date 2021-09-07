@@ -9,6 +9,10 @@ from pygame.surface import Surface
 from snake.experimental.terrain import Blueprint
 
 
+class Exploded(Exception):
+    """Projectile Exploded."""
+
+
 class Projectile:
     """Projectile."""
 
@@ -44,9 +48,15 @@ class Projectile:
 
     def process_logic(self) -> None:
         """Process the Projectile logic and update its status."""
-        # TODO: Detect collisions
-        # TODO: TOO F***ING QUICK!
         self._pos += self._dir * self.speed
+        size = self._blueprint.rect.size
+        condition_x = self.pos.x < 0 or self.pos.x > size[0]
+        condition_y = self.pos.y < 0 or self.pos.y > size[1]
+        if condition_x or condition_y:
+            raise Exploded
+
+        # TODO: Detect collisions with terrain
+        # TODO: TOO F***ING QUICK!
 
 
 class ProjectileManager:
@@ -64,7 +74,9 @@ class ProjectileManager:
     @property
     def surface(self) -> Surface:
         """Fully rendered Surface."""
-        surface = Surface(size=self._blueprint.size, flags=pygame.SRCALPHA)
+        surface = Surface(
+            size=self._blueprint.rect.size, flags=pygame.SRCALPHA
+        )
         for proj in self._projectiles:
             draw.circle(
                 surface=surface,
@@ -88,4 +100,8 @@ class ProjectileManager:
     def process_logic(self) -> None:
         """Process logic and update status."""
         for proj in self._projectiles:
-            proj.process_logic()
+            try:
+                proj.process_logic()
+            except Exploded:
+                print(f"Projectile exploded.")
+                self._projectiles.remove(proj)

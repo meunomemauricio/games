@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple, Union
 
 import pygame
 from pygame.math import Vector2
+from pygame.rect import Rect
 from pygame.surface import Surface
 
 PINK = (0xFF, 0x00, 0xFF)
@@ -32,9 +33,32 @@ class Blueprint:
             return json.load(fd)
 
     @property
+    def block_size(self) -> Vector2:
+        """Size of a single block unit."""
+        return Vector2(
+            x=self._data["block"]["width"],
+            y=self._data["block"]["height"],
+        )
+
+    @property
+    def height(self) -> int:
+        """Terrain Height."""
+        return len(self.terrain)
+
+    @property
     def name(self) -> str:
         """Blueprint Name."""
         return self._data["name"]
+
+    @property
+    def rect(self) -> Rect:
+        """Rectangle with total size of the Blueprint."""
+        return Rect(
+            0,
+            0,
+            self.width * self._data["block"]["width"],
+            self.height * self._data["block"]["height"],
+        )
 
     @property
     def terrain(self) -> List[str]:
@@ -45,27 +69,6 @@ class Blueprint:
     def width(self) -> int:
         """Terrain Width."""
         return len(self.terrain[0])
-
-    @property
-    def height(self) -> int:
-        """Terrain Height."""
-        return len(self.terrain)
-
-    @property
-    def block_size(self) -> Vector2:
-        """Size, in pixels, of a single block unit."""
-        return Vector2(
-            x=self._data["block"]["width"],
-            y=self._data["block"]["height"],
-        )
-
-    @property
-    def size(self) -> Tuple[int, int]:
-        """Total Blueprint Size."""
-        return (
-            self.width * self._data["block"]["width"],
-            self.height * self._data["block"]["height"],
-        )
 
 
 class Terrain:
@@ -85,7 +88,7 @@ class Terrain:
     @cached_property
     def surface(self) -> Surface:
         """Fully drawn map as a Surface."""
-        surface = Surface(size=self._bp.size, flags=pygame.SRCALPHA)
+        surface = Surface(size=self._bp.rect.size, flags=pygame.SRCALPHA)
         for j, row in enumerate(self._bp.terrain):
             for i, char in enumerate(row):
                 if char == self.SPACE_CHAR:
