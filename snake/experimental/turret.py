@@ -1,8 +1,9 @@
 """Define the Turret entity."""
-from typing import Optional
+from typing import Callable, Optional
 
 import pygame
 from pygame import draw
+from pygame.event import Event
 from pygame.math import Vector2
 from pygame.surface import Surface
 
@@ -15,6 +16,7 @@ class Turret:
     CHAR = "H"
 
     INITIAL_ANGLE = -45
+    AIM_SENSITIVITY = 10
 
     CIRCLE_RATE = 1 / 6
     AIM_RATE = 1 / 3.4
@@ -84,3 +86,26 @@ class Turret:
             width=self.AIM_WIDTH,
         )
         return surface
+
+    def _decrease_angle(self) -> None:
+        """Decrease Aim's Angle."""
+        self.aim = self.aim.rotate(self.AIM_SENSITIVITY)
+
+    def _increase_angle(self) -> None:
+        """Increase Aim's Angle."""
+        self.aim = self.aim.rotate(-self.AIM_SENSITIVITY)
+
+    def handle_event(self, event: Event):
+        """Handle the Hero events.
+
+        :param event: Pygame Event object.
+        """
+        if event.type != pygame.KEYDOWN:
+            return
+
+        action: Callable = {
+            pygame.K_RIGHT: self._decrease_angle,
+            pygame.K_LEFT: self._increase_angle,
+        }.get(event.key)
+        if action:
+            action()

@@ -1,6 +1,7 @@
 from functools import cached_property
 
 import pygame
+from pygame.event import Event
 from pygame.surface import Surface
 
 from snake.experimental.terrain import Blueprint, Terrain
@@ -52,10 +53,20 @@ class MainApp:
 
         return surface
 
+    def _handle_quit(self, event: Event) -> None:
+        """Handle the Quit events.
+
+        :param event: PyGame Event object.
+        """
+        if event.type == pygame.QUIT:
+            self._running = False
+        elif event.type == pygame.KEYUP and event.key == pygame.K_q:
+            self._running = False
+
     def handle_input(self) -> None:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self._running = False
+            self._hero.handle_event(event=event)
+            self._handle_quit(event=event)
 
     def handle_graphics(self) -> None:
         self._screen.fill(color=self.BG_COLOR)
