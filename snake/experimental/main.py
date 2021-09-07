@@ -3,8 +3,8 @@ from functools import cached_property
 import pygame
 from pygame.surface import Surface
 
-from snake.experimental.cannon import Cannon
 from snake.experimental.terrain import Blueprint, Terrain
+from snake.experimental.turret import Turret
 
 
 class MainApp:
@@ -34,7 +34,7 @@ class MainApp:
         self._bp = Blueprint(name=bp_name)
         self._screen = pygame.display.set_mode(size=self._bp.size)
         self._terrain = Terrain(blueprint=self._bp)
-        self._hero = Cannon(blueprint=self._bp)
+        self._hero = Turret(blueprint=self._bp)
 
     @cached_property
     def grid_surface(self) -> Surface:

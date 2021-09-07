@@ -1,4 +1,4 @@
-"""Define the Cannon entity."""
+"""Define the Turret entity."""
 from typing import Optional
 
 import pygame
@@ -9,7 +9,7 @@ from pygame.surface import Surface
 from snake.experimental.terrain import Blueprint
 
 
-class Cannon:
+class Turret:
 
     COLOR = (0xFF, 0x00, 0x00)
     CHAR = "H"
@@ -21,9 +21,9 @@ class Cannon:
     AIM_WIDTH = 10
 
     def __init__(self, blueprint: Blueprint):
-        """Cannon Entity.
+        """Turret Entity.
 
-        :param initial_pos: Initial Position of the Cannon.
+        :param initial_pos: Initial Position of the Turret.
         :param blueprint: Blueprint of the Terrain.
         """
         self._bp = blueprint
@@ -55,7 +55,7 @@ class Cannon:
 
     @property
     def center(self) -> Vector2:
-        """Center of the Cannon"""
+        """Center of the Turret"""
         return Vector2(
             x=self._bs.x / 2,
             y=self._bs.y / 2,
@@ -63,11 +63,11 @@ class Cannon:
 
     @property
     def surface(self) -> Surface:
-        """Cannon Surface.
+        """Turret Surface.
 
         It's drawn every time it's referenced.
 
-        :return: Cannon Surface.
+        :return: Turret Surface.
         """
         surface = Surface(size=self._bs, flags=pygame.SRCALPHA)
         draw.circle(  # Base
