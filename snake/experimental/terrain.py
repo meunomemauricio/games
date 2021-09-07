@@ -80,7 +80,6 @@ class Terrain:
     @cached_property
     def surface(self) -> Surface:
         """Fully drawn map as a Surface."""
-        # TODO: Use .blits()
         surface = Surface(size=self._bp.size, flags=pygame.SRCALPHA)
         for j, row in enumerate(self._bp.terrain):
             for i, char in enumerate(row):

@@ -70,12 +70,14 @@ class MainApp:
 
     def handle_graphics(self) -> None:
         self._screen.fill(color=self.BG_COLOR)
-        # TODO: Use .blits()
-        self._screen.blit(source=self._terrain.surface, dest=(0, 0))
-        self._screen.blit(source=self._hero.surface, dest=self._hero.pos)
+        layers = [
+            (self._terrain.surface, (0, 0)),
+            (self._hero.surface, self._hero.pos),
+        ]
         if self._grid:
-            self._screen.blit(source=self.grid_surface, dest=(0, 0))
+            layers.append((self.grid_surface, (0, 0)))
 
+        self._screen.blits(layers)
         pygame.display.flip()
 
     def execute(self) -> None:
