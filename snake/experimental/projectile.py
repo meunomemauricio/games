@@ -49,10 +49,9 @@ class Projectile:
     def process_logic(self) -> None:
         """Process the Projectile logic and update its status."""
         self._pos += self._dir * self.speed
-        size = self._blueprint.rect.size
-        condition_x = self.pos.x < 0 or self.pos.x > size[0]
-        condition_y = self.pos.y < 0 or self.pos.y > size[1]
-        if condition_x or condition_y:
+
+        # Explode when out of screen
+        if not self._blueprint.rect.collidepoint(self.pos.x, self.pos.y):
             raise Exploded
 
         # TODO: Detect collisions with terrain
@@ -103,5 +102,4 @@ class ProjectileManager:
             try:
                 proj.process_logic()
             except Exploded:
-                print(f"Projectile exploded.")
                 self._projectiles.remove(proj)
