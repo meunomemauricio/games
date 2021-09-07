@@ -14,6 +14,12 @@ class Cannon:
     COLOR = (0xFF, 0x00, 0x00)
     CHAR = "H"
 
+    INITIAL_ANGLE = -45
+
+    CIRCLE_RATE = 1 / 6
+    AIM_RATE = 1 / 3.4
+    AIM_WIDTH = 10
+
     def __init__(self, blueprint: Blueprint):
         """Cannon Entity.
 
@@ -21,6 +27,7 @@ class Cannon:
         :param blueprint: Blueprint of the Terrain.
         """
         self._bp = blueprint
+        self._bs = self._bp.block_size  #: Block Size Shortcut
 
         self._pos: Optional[Vector2] = None
 
@@ -29,7 +36,9 @@ class Cannon:
 
         #: Aim Direction
         self.aim = Vector2()
-        self.aim.from_polar((30, -45))
+        self.aim.from_polar(
+            (self._bs.length() * self.AIM_RATE, self.INITIAL_ANGLE)
+        )
 
     def _find_in_blueprint(self) -> Vector2:
         """Determine the initial position using the Blueprint."""
@@ -42,9 +51,14 @@ class Cannon:
     @property
     def pos(self) -> Vector2:
         """Position in the Screen."""
+        return Vector2(x=self.loc.x * self._bs.x, y=self.loc.y * self._bs.y)
+
+    @property
+    def center(self) -> Vector2:
+        """Center of the Cannon"""
         return Vector2(
-            x=self.loc.x * self._bp.block_size.x,
-            y=self.loc.y * self._bp.block_size.y,
+            x=self._bs.x / 2,
+            y=self._bs.y / 2,
         )
 
     @property
@@ -55,17 +69,18 @@ class Cannon:
 
         :return: Cannon Surface.
         """
-        surface = Surface(size=self._bp.size, flags=pygame.SRCALPHA)
-        draw.rect(  # Base
+        surface = Surface(size=self._bs, flags=pygame.SRCALPHA)
+        draw.circle(  # Base
             surface=surface,
             color=self.COLOR,
-            rect=(self.pos, self._bp.block_size),
+            center=self.center,
+            radius=self._bs.length() * self.CIRCLE_RATE,
         )
         draw.line(  # Aim
             surface=surface,
             color=self.COLOR,
-            start_pos=self.pos + Vector2(25, 10),
-            end_pos=self.pos + Vector2(25, 10) + self.aim,
-            width=5,
+            start_pos=self.center,
+            end_pos=self.center + self.aim,
+            width=self.AIM_WIDTH,
         )
         return surface

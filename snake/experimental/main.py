@@ -16,16 +16,19 @@ class MainApp:
     GRID_COLOR = (0xFF, 0xFF, 0xFF)
     GRID_WIDTH = 1
 
-    def __init__(self, bp_name: str, grid: bool):
+    def __init__(self, bp_name: str, debug: bool, grid: bool):
         """Main Application.
 
         :param bp_name: Name of the Blueprint to be loaded.
+        :param debug:
         :param grid: If `True`, draw a grid on top of the Screen.
         """
         pygame.init()
         pygame.display.set_caption(self.CAPTION)
 
+        self._debug = debug
         self._grid = grid
+
         self._running = True
 
         self._bp = Blueprint(name=bp_name)
@@ -58,7 +61,7 @@ class MainApp:
         self._screen.fill(color=self.BG_COLOR)
         # TODO: Use .blits()
         self._screen.blit(source=self._terrain.surface, dest=(0, 0))
-        self._screen.blit(source=self._hero.surface, dest=(0, 0))
+        self._screen.blit(source=self._hero.surface, dest=self._hero.pos)
         if self._grid:
             self._screen.blit(source=self.grid_surface, dest=(0, 0))
 
