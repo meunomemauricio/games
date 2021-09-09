@@ -1,5 +1,5 @@
 """Define the Turret entity."""
-from typing import Callable, Optional
+from enum import Enum
 
 import pygame
 from pygame import draw
@@ -11,13 +11,28 @@ from snake.experimental.projectile import ProjectileManager
 from snake.experimental.terrain import Blueprint
 
 
+class AimState(str, Enum):
+    """Possible Turret Aim States."""
+
+    IDLE = "idle"
+    ROTATING_CW = "cw"
+    ROTATING_CCW = "ccw"
+
+
+class GunState(str, Enum):
+    """Possible Turret Gun states."""
+
+    IDLE = "idle"
+    FIRING = "firing"
+
+
 class Turret:
 
     COLOR = (0xFF, 0x00, 0x00)
     CHAR = "H"
 
     INITIAL_ANGLE = -45
-    AIM_SENSITIVITY = 10
+    AIM_SENSITIVITY = 5
 
     CIRCLE_RATE = 1 / 6
     AIM_RATE = 1 / 3.4
@@ -33,10 +48,12 @@ class Turret:
         self._pm = pm
         self._bs = self._bp.block_size  #: Block Size Shortcut
 
-        self._pos: Optional[Vector2] = None
+        #: States
+        self._aim_state = AimState.IDLE
+        self._gun_state = GunState.IDLE
 
         #: Location in the Grid.
-        self.loc: Vector2 = self._find_in_blueprint()
+        self._loc: Vector2 = self._find_in_blueprint()
 
         #: Aim Direction
         self.aim = Vector2()
@@ -52,15 +69,7 @@ class Turret:
             except ValueError:
                 continue
 
-    def _decrease_angle(self) -> None:
-        """Decrease Aim's Angle."""
-        self.aim = self.aim.rotate(self.AIM_SENSITIVITY)
-
-    def _increase_angle(self) -> None:
-        """Increase Aim's Angle."""
-        self.aim = self.aim.rotate(-self.AIM_SENSITIVITY)
-
-    def _fire_turret(self) -> None:
+    def _fire_gun(self) -> None:
         """Fire a Projectile from the Turret."""
         self._pm.create_projectile(dir=self.aim, pos=self.pos)
 
@@ -82,7 +91,7 @@ class Turret:
     @property
     def render_pos(self) -> Vector2:
         """Render Position, in screen coordinates."""
-        return Vector2(x=self.loc.x * self._bs.x, y=self.loc.y * self._bs.y)
+        return Vector2(x=self._loc.x * self._bs.x, y=self._loc.y * self._bs.y)
 
     @property
     def surface(self) -> Surface:
@@ -113,13 +122,26 @@ class Turret:
 
         :param event: Pygame Event object.
         """
-        if event.type != pygame.KEYDOWN:
-            return
+        if event.type == pygame.KEYUP:
+            if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
+                self._aim_state = AimState.IDLE
+            if event.key == pygame.K_SPACE:
+                self._gun_state = GunState.IDLE
 
-        action: Callable = {
-            pygame.K_RIGHT: self._decrease_angle,
-            pygame.K_LEFT: self._increase_angle,
-            pygame.K_SPACE: self._fire_turret,
-        }.get(event.key)
-        if action:
-            action()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                self._aim_state = AimState.ROTATING_CW
+            if event.key == pygame.K_LEFT:
+                self._aim_state = AimState.ROTATING_CCW
+            if event.key == pygame.K_SPACE:
+                self._gun_state = GunState.FIRING
+
+    def process_logic(self):
+        """Process Turret logic."""
+        if self._aim_state == AimState.ROTATING_CW:
+            self.aim = self.aim.rotate(self.AIM_SENSITIVITY)
+        elif self._aim_state == AimState.ROTATING_CCW:
+            self.aim = self.aim.rotate(-self.AIM_SENSITIVITY)
+
+        if self._gun_state == GunState.FIRING:
+            self._fire_gun()

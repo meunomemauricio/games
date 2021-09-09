@@ -17,6 +17,10 @@ def time_ms() -> float:
     return time.time() * 1000
 
 
+class QuitApplication(Exception):
+    """Quit the application if raised inside the Main Loop."""
+
+
 class MainApp:
 
     #: Screen/Window parameters.
@@ -102,22 +106,18 @@ class MainApp:
         :param event: PyGame Event object.
         """
         if event.type == pygame.QUIT:
-            self._running = False
+            raise QuitApplication
         elif event.type == pygame.KEYUP and event.key == pygame.K_q:
-            self._running = False
-
-    def _handle_input(self) -> None:
-        for event in pygame.event.get():
-            self._hero.handle_event(event=event)
-            self._handle_quit(event=event)
-
-    def _process_logic(self) -> None:
-        self._proj_mgmt.process_logic()
+            raise QuitApplication
 
     def _update_game(self) -> None:
         """Update Game State."""
-        self._handle_input()
-        self._process_logic()
+        for event in pygame.event.get():
+            self._handle_quit(event=event)
+            self._hero.handle_event(event=event)
+
+        self._hero.process_logic()
+        self._proj_mgmt.process_logic()
 
     def _calc_interpolation(self) -> float:
         """Calculate the Interpolation between game ticks."""
@@ -160,5 +160,8 @@ class MainApp:
 
     def run(self) -> None:
         """Run the application."""
-        while self._running:
-            self._main_loop()
+        while True:
+            try:
+                self._main_loop()
+            except QuitApplication:
+                break
