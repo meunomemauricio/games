@@ -61,7 +61,7 @@ class MainApp:
         self._hero = Turret(blueprint=self._blueprint, pm=self._proj_mgmt)
 
     @cached_property
-    def grid_surface(self) -> Surface:
+    def _grid_surface(self) -> Surface:
         """A surface representing the Grid."""
         block_size = self._blueprint.block_size
         size = self._blueprint.rect.size
@@ -103,25 +103,30 @@ class MainApp:
 
     def _calc_interpolation(self) -> float:
         """Calculate the Interpolation between game ticks."""
-        return (time_ms() + self.TICK_STEP - self._next_tick) / self.TICK_STEP
+        next_prediction = time_ms() + self.TICK_STEP - self._next_tick
+        interp = next_prediction / self.TICK_STEP
+        return max(min(interp, 1.0), 0.0)  # Clip between 0 and 1
 
-    def _render_graphics(self, interpolation: float) -> None:
-        if self._debug:
-            print(interpolation)
+    def _render_graphics(self, interp: float) -> None:
+        """Render the frame and display it in the screen.
 
+        :param interp: To allow smoother movement on screen, interpolation is
+          used when rendering the screen between game state updates,
+        """
         layers = [
             (self._terrain.surface, (0, 0)),
-            (self._proj_mgmt.surface, (0, 0)),
+            (self._proj_mgmt.build_surface(interp), (0, 0)),
             (self._hero.surface, self._hero.render_pos),
         ]
         if self._grid:
-            layers.append((self.grid_surface, (0, 0)))
+            layers.append((self._grid_surface, (0, 0)))
 
         self._screen.fill(color=self.BG_COLOR)
         self._screen.blits(layers)
         pygame.display.flip()
 
     def _main_loop(self) -> None:
+        """Main Application Loop."""
         loops = 0
         while time_ms() > self._next_tick and loops < self.MAX_FRAMESKIP:
             self._update_game()
@@ -129,8 +134,9 @@ class MainApp:
             loops += 1
 
         interpolation = self._calc_interpolation()
-        self._render_graphics(interpolation=interpolation)
+        self._render_graphics(interp=interpolation)
 
     def run(self) -> None:
+        """Run the application."""
         while self._running:
             self._main_loop()

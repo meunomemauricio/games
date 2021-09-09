@@ -23,19 +23,24 @@ class Projectile:
         :param pos: Initial Position, in screen coordinates.
         :param speed: Initial Speed Vector, in screen coordinates.
         """
-        self._blueprint = blueprint
-        self._dir = dir
-        self._pos = pos
+        self._blueprint: Blueprint = blueprint
+        self._dir: Vector2 = dir
+        self._curr_pos: Vector2 = pos
+
+    def _oos_collision(self) -> bool:
+        """Out of Screen Collision Detection.
+
+        :return `True` when the current position is not inside the screen.
+        """
+        return not self._blueprint.rect.collidepoint(
+            self._curr_pos.x,
+            self._curr_pos.y,
+        )
 
     @property
     def color(self) -> Tuple[int, int, int]:
         """Projectile Color."""
         return 0xFF, 0xFF, 0x00  # Yellow
-
-    @property
-    def pos(self) -> Vector2:
-        """Current Position, in screen coordinates."""
-        return self._pos
 
     @property
     def radius(self) -> int:
@@ -44,18 +49,31 @@ class Projectile:
 
     @property
     def speed(self) -> float:
-        return 1.0
+        """Scalar Speed."""
+        return 0.25
+
+    @property
+    def velocity(self) -> Vector2:
+        """Velocity Vector."""
+        return self.speed * self._dir
 
     def process_logic(self) -> None:
         """Process the Projectile logic and update its status."""
-        self._pos += self._dir * self.speed
+        self._curr_pos += self.velocity
 
-        # Explode when out of screen
-        if not self._blueprint.rect.collidepoint(self.pos.x, self.pos.y):
+        if self._oos_collision():
             raise Exploded
 
         # TODO: Detect collisions with terrain
-        # TODO: TOO F***ING QUICK!
+
+    def get_render_position(self, interp: float) -> Vector2:
+        """Calculate the Rendering Position, in screen coordinates.
+
+        A linear interpolation is made between the current position and a
+        prediction of the next position.
+        """
+        next_pos: Vector2 = self._curr_pos + self.velocity
+        return self._curr_pos.lerp(next_pos, interp)
 
 
 class ProjectileManager:
@@ -69,22 +87,6 @@ class ProjectileManager:
         self._blueprint = blueprint
 
         self._projectiles: List[Projectile] = []
-
-    @property
-    def surface(self) -> Surface:
-        """Fully rendered Surface."""
-        surface = Surface(
-            size=self._blueprint.rect.size, flags=pygame.SRCALPHA
-        )
-        for proj in self._projectiles:
-            draw.circle(
-                surface=surface,
-                color=proj.color,
-                center=proj.pos,
-                radius=proj.radius,
-            )
-
-        return surface
 
     def create_projectile(self, dir: Vector2, pos: Vector2) -> None:
         """Create a Projectile and add it to the list.
@@ -103,3 +105,16 @@ class ProjectileManager:
                 proj.process_logic()
             except Exploded:
                 self._projectiles.remove(proj)
+
+    def build_surface(self, interp: float) -> Surface:
+        """Fully rendered Surface."""
+        sface = Surface(size=self._blueprint.rect.size, flags=pygame.SRCALPHA)
+        for proj in self._projectiles:
+            draw.circle(
+                surface=sface,
+                color=proj.color,
+                center=proj.get_render_position(interp=interp),
+                radius=proj.radius,
+            )
+
+        return sface
