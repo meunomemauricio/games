@@ -1,4 +1,4 @@
-import time
+"""Define the Main Application class."""
 from functools import cached_property
 
 import pygame
@@ -10,11 +10,7 @@ from pygame.time import Clock
 from snake.experimental.projectile import ProjectileManager
 from snake.experimental.terrain import Blueprint, Terrain
 from snake.experimental.turret import Turret
-
-
-def time_ms() -> float:
-    """Simple wrapper to return current time in milliseconds."""
-    return time.time() * 1000
+from snake.experimental.utils import time_ms
 
 
 class QuitApplication(Exception):
@@ -22,6 +18,7 @@ class QuitApplication(Exception):
 
 
 class MainApp:
+    """Main Application."""
 
     #: Screen/Window parameters.
     CAPTION = "Experimental v0.1"
@@ -36,7 +33,7 @@ class MainApp:
     GRID_ALPHA = 50
 
     #: Difference in time between ticks
-    TICK_STEP = 20.0  # ms
+    TICK_STEP = 10.0  # ms
 
     #: Max number of rendered frames that can be skipped. This is mostly
     #  relevant on slower machines, in case the time it takes to update the
@@ -110,13 +107,16 @@ class MainApp:
         elif event.type == pygame.KEYUP and event.key == pygame.K_q:
             raise QuitApplication
 
-    def _update_game(self) -> None:
-        """Update Game State."""
+    def _update_game(self, tick: float) -> None:
+        """Update Game State.
+
+        :param tick: Current tick in ms.
+        """
         for event in pygame.event.get():
             self._handle_quit(event=event)
             self._hero.handle_event(event=event)
 
-        self._hero.process_logic()
+        self._hero.process_logic(tick=tick)
         self._proj_mgmt.process_logic()
 
     def _calc_interpolation(self) -> float:
@@ -150,8 +150,9 @@ class MainApp:
     def _main_loop(self) -> None:
         """Main Application Loop."""
         loops = 0
-        while time_ms() > self._next_tick and loops < self.MAX_FRAMESKIP:
-            self._update_game()
+        current_tick = time_ms()
+        while current_tick > self._next_tick and loops < self.MAX_FRAMESKIP:
+            self._update_game(tick=current_tick)
             self._next_tick += self.TICK_STEP
             loops += 1
 

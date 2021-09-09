@@ -9,6 +9,7 @@ from pygame.surface import Surface
 
 from snake.experimental.projectile import ProjectileManager
 from snake.experimental.terrain import Blueprint
+from snake.experimental.utils import time_ms
 
 
 class AimState(str, Enum):
@@ -32,7 +33,8 @@ class Turret:
     CHAR = "H"
 
     INITIAL_ANGLE = -45
-    AIM_SENSITIVITY = 5
+    AIM_SENSITIVITY = 3
+    MIN_FIRE_INTERVAL = 100.0  # ms
 
     CIRCLE_RATE = 1 / 6
     AIM_RATE = 1 / 3.4
@@ -52,6 +54,9 @@ class Turret:
         self._aim_state = AimState.IDLE
         self._gun_state = GunState.IDLE
 
+        #: Last time the gun was fired.
+        self._last_shot = 0.0
+
         #: Location in the Grid.
         self._loc: Vector2 = self._find_in_blueprint()
 
@@ -69,9 +74,16 @@ class Turret:
             except ValueError:
                 continue
 
-    def _fire_gun(self) -> None:
-        """Fire a Projectile from the Turret."""
+    def _fire_gun(self, tick: float) -> None:
+        """Fire a Projectile from the Turret.
+
+        :param tick: Current tick in ms.
+        """
+        if tick - self._last_shot < self.MIN_FIRE_INTERVAL:
+            return
+
         self._pm.create_projectile(dir=self.aim, pos=self.pos)
+        self._last_shot = time_ms()
 
     @property
     def center(self) -> Vector2:
@@ -117,7 +129,7 @@ class Turret:
         )
         return surface
 
-    def handle_event(self, event: Event):
+    def handle_event(self, event: Event) -> None:
         """Handle the Hero events.
 
         :param event: Pygame Event object.
@@ -136,12 +148,15 @@ class Turret:
             if event.key == pygame.K_SPACE:
                 self._gun_state = GunState.FIRING
 
-    def process_logic(self):
-        """Process Turret logic."""
+    def process_logic(self, tick: float) -> None:
+        """Process Turret logic.
+
+        :param tick: Current tick in ms.
+        """
         if self._aim_state == AimState.ROTATING_CW:
             self.aim = self.aim.rotate(self.AIM_SENSITIVITY)
         elif self._aim_state == AimState.ROTATING_CCW:
             self.aim = self.aim.rotate(-self.AIM_SENSITIVITY)
 
         if self._gun_state == GunState.FIRING:
-            self._fire_gun()
+            self._fire_gun(tick=tick)

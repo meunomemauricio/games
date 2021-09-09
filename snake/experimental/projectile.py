@@ -50,7 +50,7 @@ class Projectile:
     @property
     def speed(self) -> float:
         """Scalar Speed."""
-        return 0.25
+        return 0.05
 
     @property
     def velocity(self) -> Vector2:
