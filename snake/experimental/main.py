@@ -1,3 +1,4 @@
+import time
 from functools import cached_property
 
 import pygame
@@ -9,15 +10,29 @@ from snake.experimental.terrain import Blueprint, Terrain
 from snake.experimental.turret import Turret
 
 
+def time_ms() -> float:
+    """Simple wrapper to return current time in milliseconds."""
+    return time.time() * 1000
+
+
 class MainApp:
 
+    #: Screen/Window parameters.
     CAPTION = "Experimental v0.1"
-
     BG_COLOR = (0x00, 0x00, 0x00)
 
+    #: Grid Parameters
     GRID_COLOR = (0xFF, 0xFF, 0xFF)
     GRID_WIDTH = 1
     GRID_ALPHA = 50
+
+    #: Difference in time between ticks
+    TICK_STEP = 20.0  # ms
+
+    #: Max number of rendered frames that can be skipped. This is mostly
+    #  relevant on slower machines, in case the time it takes to update the
+    #  game state is greater than `TICK_STEP`.
+    MAX_FRAMESKIP = 10
 
     def __init__(self, bp_name: str, debug: bool, grid: bool):
         """Main Application.
@@ -32,7 +47,9 @@ class MainApp:
         self._debug = debug
         self._grid = grid
 
+        # Main Loop Variables
         self._running = True
+        self._next_tick = time_ms()
 
         self._blueprint = Blueprint(name=bp_name)
 
@@ -71,15 +88,27 @@ class MainApp:
         elif event.type == pygame.KEYUP and event.key == pygame.K_q:
             self._running = False
 
-    def handle_input(self) -> None:
+    def _handle_input(self) -> None:
         for event in pygame.event.get():
             self._hero.handle_event(event=event)
             self._handle_quit(event=event)
 
-    def process_logic(self) -> None:
+    def _process_logic(self) -> None:
         self._proj_mgmt.process_logic()
 
-    def render_graphics(self) -> None:
+    def _update_game(self) -> None:
+        """Update Game State."""
+        self._handle_input()
+        self._process_logic()
+
+    def _calc_interpolation(self) -> float:
+        """Calculate the Interpolation between game ticks."""
+        return (time_ms() + self.TICK_STEP - self._next_tick) / self.TICK_STEP
+
+    def _render_graphics(self, interpolation: float) -> None:
+        if self._debug:
+            print(interpolation)
+
         layers = [
             (self._terrain.surface, (0, 0)),
             (self._proj_mgmt.surface, (0, 0)),
@@ -92,8 +121,16 @@ class MainApp:
         self._screen.blits(layers)
         pygame.display.flip()
 
-    def execute(self) -> None:
+    def _main_loop(self) -> None:
+        loops = 0
+        while time_ms() > self._next_tick and loops < self.MAX_FRAMESKIP:
+            self._update_game()
+            self._next_tick += self.TICK_STEP
+            loops += 1
+
+        interpolation = self._calc_interpolation()
+        self._render_graphics(interpolation=interpolation)
+
+    def run(self) -> None:
         while self._running:
-            self.handle_input()
-            self.process_logic()
-            self.render_graphics()
+            self._main_loop()

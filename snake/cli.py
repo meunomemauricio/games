@@ -22,4 +22,4 @@ def run():
 @click.option("-d", "--debug/--no-debug", default=False)
 @click.option("-g", "--grid/--no-grid", default=False)
 def experimental(blueprint: str, debug: bool, grid: bool):
-    ExperimentalMainApp(bp_name=blueprint, debug=debug, grid=grid).execute()
+    ExperimentalMainApp(bp_name=blueprint, debug=debug, grid=grid).run()
