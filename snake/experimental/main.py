@@ -3,7 +3,9 @@ from functools import cached_property
 
 import pygame
 from pygame.event import Event
+from pygame.font import SysFont, get_default_font
 from pygame.surface import Surface
+from pygame.time import Clock
 
 from snake.experimental.projectile import ProjectileManager
 from snake.experimental.terrain import Blueprint, Terrain
@@ -21,6 +23,9 @@ class MainApp:
     CAPTION = "Experimental v0.1"
     BG_COLOR = (0x00, 0x00, 0x00)
 
+    FPS_SIZE = 25
+    FPS_COLOR = (0xFF, 0x00, 0x00)
+
     #: Grid Parameters
     GRID_COLOR = (0xFF, 0xFF, 0xFF)
     GRID_WIDTH = 1
@@ -34,31 +39,44 @@ class MainApp:
     #  game state is greater than `TICK_STEP`.
     MAX_FRAMESKIP = 10
 
-    def __init__(self, bp_name: str, debug: bool, grid: bool):
+    def __init__(self, bp_name: str, debug: bool, grid: bool, show_fps: bool):
         """Main Application.
 
         :param bp_name: Name of the Blueprint to be loaded.
-        :param debug:
-        :param grid: If `True`, draw a grid on top of the Screen.
+        :param debug: If `True`, display debug messages.
+        :param grid: If `True`, draw a grid on top of the screen.
+        :param show_fps: If `True`, render the FPS on screen.
         """
+        self._debug = debug
+        self._grid = grid
+        self._show_fps = show_fps
+
+        # Init PyGame
         pygame.init()
         pygame.display.set_caption(self.CAPTION)
 
-        self._debug = debug
-        self._grid = grid
-
-        # Main Loop Variables
-        self._running = True
+        # Application Variables
         self._next_tick = time_ms()
+        self._render_clock = Clock()
+        self._running = True
 
+        # Game Elements
         self._blueprint = Blueprint(name=bp_name)
 
         self._screen = pygame.display.set_mode(size=self._blueprint.rect.size)
+
+        self._fps_font = SysFont(get_default_font(), self.FPS_SIZE)
 
         self._terrain = Terrain(blueprint=self._blueprint)
 
         self._proj_mgmt = ProjectileManager(blueprint=self._blueprint)
         self._hero = Turret(blueprint=self._blueprint, pm=self._proj_mgmt)
+
+    @property
+    def _fps_surface(self) -> Surface:
+        """FPS Meter Surface."""
+        msg = f"FPS: {self._render_clock.get_fps()}"
+        return self._fps_font.render(msg, True, self.FPS_COLOR)
 
     @cached_property
     def _grid_surface(self) -> Surface:
@@ -121,9 +139,13 @@ class MainApp:
         if self._grid:
             layers.append((self._grid_surface, (0, 0)))
 
+        if self._show_fps:
+            layers.append((self._fps_surface, (0, 0)))
+
         self._screen.fill(color=self.BG_COLOR)
         self._screen.blits(layers)
         pygame.display.flip()
+        self._render_clock.tick()
 
     def _main_loop(self) -> None:
         """Main Application Loop."""

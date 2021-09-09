@@ -20,6 +20,9 @@ def run():
 @cli.command()
 @click.option("-b", "--blueprint", default="blocks")
 @click.option("-d", "--debug/--no-debug", default=False)
+@click.option("-f", "--fps/--no-fps", default=False)
 @click.option("-g", "--grid/--no-grid", default=False)
-def experimental(blueprint: str, debug: bool, grid: bool):
-    ExperimentalMainApp(bp_name=blueprint, debug=debug, grid=grid).run()
+def experimental(blueprint: str, debug: bool, fps: bool, grid: bool):
+    ExperimentalMainApp(
+        bp_name=blueprint, debug=debug, grid=grid, show_fps=fps
+    ).run()
