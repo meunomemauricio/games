@@ -3,6 +3,7 @@ from typing import Tuple
 
 import pygame
 from pygame import Surface
+from pygame.event import Event
 from pygame.rect import Rect
 
 
@@ -38,3 +39,15 @@ class Snake:
                 self._grid_size,
             ),
         )
+
+    def handle_input(self, event: Event) -> None:
+        """Handle events."""
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                self.move_y(step=-1)
+            if event.key == pygame.K_DOWN:
+                self.move_y(step=1)
+            if event.key == pygame.K_RIGHT:
+                self.move_x(step=1)
+            if event.key == pygame.K_LEFT:
+                self.move_x(step=-1)

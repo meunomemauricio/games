@@ -50,15 +50,8 @@ class MainApp:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    self._snake.move_y(step=-1)
-                if event.key == pygame.K_DOWN:
-                    self._snake.move_y(step=1)
-                if event.key == pygame.K_RIGHT:
-                    self._snake.move_x(step=1)
-                if event.key == pygame.K_LEFT:
-                    self._snake.move_x(step=-1)
+
+            self._snake.handle_input(event=event)
 
     def render_screen(self) -> None:
         """Render the screen."""
