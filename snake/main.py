@@ -60,7 +60,7 @@ class MainApp:
         """Application main loop."""
         while self._running:
             self.handle_events()
-            
+
             self._screen.fill(color=self.BG_COLOR)
             self.draw_grid()
             self._snake.draw(surface=self._screen)

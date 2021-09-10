@@ -31,5 +31,10 @@ class Snake:
         pygame.draw.rect(
             surface=surface,
             color=self.HEAD_COLOR,
-            rect=Rect(self._x * self._grid_size, self._y * self._grid_size, self._grid_size, self._grid_size),
+            rect=Rect(
+                self._x * self._grid_size,
+                self._y * self._grid_size,
+                self._grid_size,
+                self._grid_size,
+            ),
         )
