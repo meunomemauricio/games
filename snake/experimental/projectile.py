@@ -1,5 +1,6 @@
 """Define Projectiles and its manager."""
-from typing import List, Tuple
+from enum import Enum
+from typing import Set, Tuple
 
 import pygame
 from pygame import draw
@@ -9,8 +10,11 @@ from pygame.surface import Surface
 from snake.experimental.terrain import Blueprint
 
 
-class Exploded(Exception):
-    """Projectile Exploded."""
+class ProjectileState(Enum):
+    """"""
+
+    MOVING = 1
+    DELETED = 2
 
 
 class Projectile:
@@ -26,6 +30,8 @@ class Projectile:
         self._blueprint: Blueprint = blueprint
         self._dir: Vector2 = dir
         self._curr_pos: Vector2 = pos
+
+        self.state = ProjectileState.MOVING
 
     def _oos_collision(self) -> bool:
         """Out of Screen Collision Detection.
@@ -62,7 +68,8 @@ class Projectile:
         self._curr_pos += self.velocity
 
         if self._oos_collision():
-            raise Exploded
+            self.state = ProjectileState.DELETED
+            return
 
         # TODO: Detect collisions with terrain
 
@@ -85,8 +92,7 @@ class ProjectileManager:
         :param blueprint: Terrain Blueprint.
         """
         self._blueprint = blueprint
-
-        self._projectiles: List[Projectile] = []
+        self._projectiles: Set[Projectile] = set()
 
     def create_projectile(self, dir: Vector2, pos: Vector2) -> None:
         """Create a Projectile and add it to the list.
@@ -94,17 +100,19 @@ class ProjectileManager:
         :param dir: Initial Direction, in screen coordinates.
         :param pos: Initial Position, in screen coordinates.
         """
-        self._projectiles.append(
+        self._projectiles.add(
             Projectile(blueprint=self._blueprint, dir=dir, pos=pos)
         )
 
     def process_logic(self) -> None:
         """Process logic and update status."""
+        to_be_removed = set()
         for proj in self._projectiles:
-            try:
-                proj.process_logic()
-            except Exploded:
-                self._projectiles.remove(proj)
+            proj.process_logic()
+            if proj.state == ProjectileState.DELETED:
+                to_be_removed.add(proj)
+
+        self._projectiles -= to_be_removed
 
     def build_surface(self, interp: float) -> Surface:
         """Fully rendered Surface."""
