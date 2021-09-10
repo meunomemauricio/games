@@ -82,7 +82,8 @@ class Turret:
         if tick - self._last_shot < self.MIN_FIRE_INTERVAL:
             return
 
-        self._pm.create_projectile(dir=self.aim, pos=self.pos)
+        proj_pos = self.pos + self.aim
+        self._pm.create_projectile(dir=self.aim, pos=proj_pos)
         self._last_shot = time_ms()
 
     @property
