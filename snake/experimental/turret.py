@@ -38,7 +38,7 @@ class Turret:
 
     CIRCLE_RATE = 1 / 6
     AIM_RATE = 1 / 3.4
-    AIM_WIDTH = 10
+    AIM_WIDTH_RATE = 1 / 10.0
 
     def __init__(self, blueprint: Blueprint, pm: ProjectileManager):
         """Turret Entity.
@@ -86,6 +86,10 @@ class Turret:
         self._last_shot = time_ms()
 
     @property
+    def aim_width(self) -> int:
+        return int(self._bs.length() * self.AIM_WIDTH_RATE)
+
+    @property
     def center(self) -> Vector2:
         """Turret Center, in local coordinates."""
         return Vector2(x=self._bs.x / 2, y=self._bs.y / 2)
@@ -125,7 +129,7 @@ class Turret:
             color=self.COLOR,
             start_pos=self.center,
             end_pos=self.center + self.aim,
-            width=self.AIM_WIDTH,
+            width=self.aim_width,
         )
         return surface
 
