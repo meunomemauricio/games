@@ -1,30 +1,54 @@
 """Represent the Main Protagonist."""
-from typing import Tuple
+from enum import Enum
+from typing import Mapping, Tuple
 
 import pygame
 from pygame import Surface
 from pygame.event import Event
 
+from snake.utils import time_ms
+
+
+class Direction(str, Enum):
+    """Snake Direction."""
+
+    UP = "up"
+    DOWN = "down"
+    RIGHT = "right"
+    LEFT = "left"
+
 
 class Snake:
     """Snake."""
 
+    #: Colors
     HEAD_COLOR = (0x00, 0xFF, 0x00)
+
+    #: Convert a pygame event into a Snake Direction.
+    DIRECTION_MAP: Mapping[Event, Direction] = {
+        pygame.K_UP: Direction.UP,
+        pygame.K_DOWN: Direction.DOWN,
+        pygame.K_RIGHT: Direction.RIGHT,
+        pygame.K_LEFT: Direction.LEFT,
+    }
+
+    #: Snake Speed, defined as how long it takes to move a grid unit (in ms).
+    SPEED = 500.0
 
     def __init__(self, grid_size: int):
         """Create new Snake, controlled by the player.
 
         :param grid_size: Size of the Grid in Pixels.
         """
-        self._x: int = 0
-        self._y: int = 0
         self._grid_size = grid_size
 
-    def move_x(self, step: int) -> None:
-        self._x += step
+        self._x: int = 0
+        self._y: int = 0
 
-    def move_y(self, step: int) -> None:
-        self._y += step
+        self._direction = Direction.RIGHT
+
+        # Used to control the snake speed
+        self._next_movement: float = time_ms()
 
     @property
     def pos(self) -> Tuple[int, int]:
@@ -44,11 +68,25 @@ class Snake:
     def handle_event(self, event: Event) -> None:
         """Handle events."""
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                self.move_y(step=-1)
-            if event.key == pygame.K_DOWN:
-                self.move_y(step=1)
-            if event.key == pygame.K_RIGHT:
-                self.move_x(step=1)
-            if event.key == pygame.K_LEFT:
-                self.move_x(step=-1)
+            new_direction = self.DIRECTION_MAP.get(event.key)
+            if new_direction:
+                self._direction = new_direction
+
+    def process_movement(self, tick: float) -> None:
+        """Process the Snake movement.
+
+        :param tick: Current tick in ms.
+        """
+        if tick < self._next_movement:
+            return
+
+        if self._direction == Direction.UP:
+            self._y -= 1
+        elif self._direction == Direction.DOWN:
+            self._y += 1
+        elif self._direction == Direction.RIGHT:
+            self._x += 1
+        elif self._direction == Direction.LEFT:
+            self._x -= 1
+
+        self._next_movement += self.SPEED

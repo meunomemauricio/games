@@ -104,7 +104,7 @@ class MainApp:
         elif event.type == pygame.KEYUP and event.key == pygame.K_q:
             raise QuitApplication
 
-    def _update_game(self) -> None:
+    def _update_game(self, tick: float) -> None:
         """Update Game State.
 
         :param tick: Current tick in ms.
@@ -113,18 +113,10 @@ class MainApp:
             self._handle_quit(event=event)
             self._snake.handle_event(event=event)
 
-    def _calc_interpolation(self) -> float:
-        """Calculate the Interpolation between game ticks."""
-        next_prediction = time_ms() + self.TICK_STEP - self._next_tick
-        interp = next_prediction / self.TICK_STEP
-        return max(min(interp, 1.0), 0.0)  # Clip between 0 and 1
+        self._snake.process_movement(tick=tick)
 
-    def _render_graphics(self, interp: float) -> None:
-        """Render the frame and display it in the screen.
-
-        :param interp: To allow smoother movement on screen, interpolation is
-          used when rendering the screen between game state updates,
-        """
+    def _render_graphics(self) -> None:
+        """Render the frame and display it in the screen."""
         layers = [(self._snake.surface, self._snake.render_pos)]
         if self._grid:
             layers.append((self._grid_surface, (0, 0)))
@@ -140,13 +132,13 @@ class MainApp:
     def _main_loop(self) -> None:
         """Main Application Loop."""
         loops = 0
-        while time_ms() > self._next_tick and loops < self.MAX_FRAMESKIP:
-            self._update_game()
+        current_tick = time_ms()
+        while current_tick > self._next_tick and loops < self.MAX_FRAMESKIP:
+            self._update_game(tick=current_tick)
             self._next_tick += self.TICK_STEP
             loops += 1
 
-        interpolation = self._calc_interpolation()
-        self._render_graphics(interp=interpolation)
+        self._render_graphics()
 
     def run(self) -> None:
         """Run the application."""
