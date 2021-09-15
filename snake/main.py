@@ -113,12 +113,6 @@ class MainApp:
             self._handle_quit(event=event)
             self._snake.handle_event(event=event)
 
-    def _calc_interpolation(self) -> float:
-        """Calculate the Interpolation between game ticks."""
-        next_prediction = time_ms() + self.TICK_STEP - self._next_tick
-        interp = next_prediction / self.TICK_STEP
-        return max(min(interp, 1.0), 0.0)  # Clip between 0 and 1
-
     def _render_graphics(self, interp: float) -> None:
         """Render the frame and display it in the screen.
 
@@ -145,8 +139,7 @@ class MainApp:
             self._next_tick += self.TICK_STEP
             loops += 1
 
-        interpolation = self._calc_interpolation()
-        self._render_graphics(interp=interpolation)
+        self._render_graphics()
 
     def run(self) -> None:
         """Run the application."""
