@@ -1,12 +1,13 @@
 """Main."""
-
 import pygame
 from pygame.rect import Rect
 
 from snake.snake import Snake
+from snake.utils import time_ms
 
 
 class MainApp:
+    """Main application."""
 
     CAPTION = "Snake v0.1"
 
@@ -19,39 +20,51 @@ class MainApp:
     GRID_COLOR = (0xFF, 0x00, 0x00)
     GRID_WIDTH = 1
 
+    TICK_STEP = 20.0
+
     def __init__(self):
+        self._running = True
+        self._next_tick: float = time_ms()
+
         pygame.init()
 
         # TODO: Add Logo
         pygame.display.set_caption(self.CAPTION)
 
-        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self._screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self._snake = Snake(grid_size=self.GRID_SIZE)
 
-        self.snake = Snake()
-
-    def draw_grid(self):
+    def draw_grid(self) -> None:
+        """Draw grid."""
         for x in range(0, self.WIDTH, self.GRID_SIZE):
             for y in range(0, self.HEIGHT, self.GRID_SIZE):
                 pygame.draw.rect(
-                    surface=self.screen,
+                    surface=self._screen,
                     color=self.GRID_COLOR,
                     rect=Rect(x, y, self.GRID_SIZE, self.GRID_SIZE),
                     width=self.GRID_WIDTH,
                 )
 
+    def handle_events(self) -> None:
+        """Handle events."""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self._running = False
+
+            self._snake.handle_input(event=event)
+
+    def render_screen(self) -> None:
+        """Render the screen."""
+        self._screen.fill(color=self.BG_COLOR)
+        self.draw_grid()
+        self._snake.draw(surface=self._screen)
+        pygame.display.flip()
+
     def execute(self):
-        running = True
-        while running:
-            self.screen.fill(color=self.BG_COLOR)
-            self.draw_grid()
+        """Application main loop."""
+        while self._running:
+            if time_ms() > self._next_tick:
+                self.handle_events()
+                self._next_tick += self.TICK_STEP
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-
-            self.screen.blit(source=self.snake.sprite, dest=self.snake.pos)
-
-            self.snake.inc_x()
-            self.snake.inc_y()
-
-            pygame.display.flip()
+            self.render_screen()
