@@ -1,5 +1,4 @@
 """Main Application."""
-from functools import cached_property
 
 import pygame
 from pygame.event import Event
@@ -8,6 +7,7 @@ from pygame.surface import Surface
 from pygame.time import Clock
 
 from snake.apple import Apple
+from snake.grid import Grid
 from snake.snake import Snake
 from snake.utils import time_ms
 
@@ -35,8 +35,8 @@ class MainApp:
     #: Grid parameters.
     GRID_ALPHA = 50
     GRID_COLOR = (0xFF, 0xFF, 0xFF)
-    GRID_SIZE = 20
-    GRID_WIDTH = 1
+    GRID_LINE = 1
+    GRID_STEP = 20
 
     #: Difference in time between ticks.
     TICK_STEP = 500.0  # ms
@@ -47,14 +47,13 @@ class MainApp:
 
     MAX_FRAMESKIP = 10
 
-    def __init__(self, grid: bool, show_fps: bool):
+    def __init__(self, show_fps: bool):
         """Main Application.
 
         :param bp_name: Name of the Blueprint to be loaded.
         :param grid: If `True`, draw a grid on top of the screen.
         :param show_fps: If `True`, render the FPS on screen.
         """
-        self._grid = grid
         self._show_fps = show_fps
 
         # Init PyGame
@@ -71,30 +70,22 @@ class MainApp:
 
         self._fps_font = SysFont(get_default_font(), self.FPS_SIZE)
 
-        self._snake = Snake(size=self.GRID_SIZE)
-        self._apple = Apple(x=5, y=5, size=self.GRID_SIZE)
+        self._grid = Grid(
+            width=self.WIDTH,
+            height=self.HEIGHT,
+            alpha=self.GRID_ALPHA,
+            color=self.GRID_COLOR,
+            line=self.GRID_LINE,
+            step=self.GRID_STEP,
+        )
+        self._snake = Snake(step=self._grid.step)
+        self._apple = Apple(x=5, y=5, step=self._grid.step)
 
     @property
     def _fps_surface(self) -> Surface:
         """FPS Meter Surface."""
         msg = f"FPS: {self._render_clock.get_fps()}"
         return self._fps_font.render(msg, True, self.FPS_COLOR)
-
-    @cached_property
-    def _grid_surface(self) -> Surface:
-        """A surface representing the Grid."""
-        surface = Surface(size=self.SIZE, flags=pygame.SRCALPHA)
-        surface.set_alpha(self.GRID_ALPHA)
-        for x in range(0, self.WIDTH, self.GRID_SIZE):
-            for y in range(0, self.HEIGHT, self.GRID_SIZE):
-                pygame.draw.rect(
-                    surface=surface,
-                    color=self.GRID_COLOR,
-                    rect=pygame.Rect((x, y), (self.GRID_SIZE, self.GRID_SIZE)),
-                    width=self.GRID_WIDTH,
-                )
-
-        return surface
 
     def _handle_quit(self, event: Event) -> None:
         """Handle the Quit events.
@@ -122,10 +113,8 @@ class MainApp:
         layers = [
             (self._snake.surface, self._snake.render_pos),
             (self._apple.surface, self._apple.render_pos),
+            (self._grid.surface, (0, 0)),
         ]
-        if self._grid:
-            layers.append((self._grid_surface, (0, 0)))
-
         if self._show_fps:
             layers.append((self._fps_surface, (0, 0)))
 

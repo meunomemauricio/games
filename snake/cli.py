@@ -13,9 +13,8 @@ def cli():
 
 @cli.command()
 @click.option("-f", "--fps/--no-fps", default=False)
-@click.option("-g", "--grid/--no-grid", default=True)
-def run(fps: bool, grid: bool):
-    MainApp(grid=grid, show_fps=fps).run()
+def run(fps: bool):
+    MainApp(show_fps=fps).run()
 
 
 @cli.command()

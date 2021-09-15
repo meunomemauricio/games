@@ -35,12 +35,12 @@ class Snake(GridElement):
     #: Snake Speed, defined as how long it takes to move a grid unit (in ms).
     SPEED = 500.0
 
-    def __init__(self, size: int):
+    def __init__(self, step: int):
         """Create new Snake, controlled by the player.
 
-        :param size: Size of the Grid in Pixels.
+        :param step: Size of the Grid in px.
         """
-        super().__init__(x=0, y=0, size=size)
+        super().__init__(x=0, y=0, step=step)
 
         self._direction = Direction.RIGHT
 
