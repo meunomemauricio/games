@@ -7,6 +7,7 @@ from pygame.font import SysFont, get_default_font
 from pygame.surface import Surface
 from pygame.time import Clock
 
+from snake.apple import Apple
 from snake.snake import Snake
 from snake.utils import time_ms
 
@@ -71,6 +72,7 @@ class MainApp:
         self._fps_font = SysFont(get_default_font(), self.FPS_SIZE)
 
         self._snake = Snake(grid_size=self.GRID_SIZE)
+        self._apple = Apple(x=5, y=5, grid_size=self.GRID_SIZE)
 
     @property
     def _fps_surface(self) -> Surface:
@@ -117,7 +119,10 @@ class MainApp:
 
     def _render_graphics(self) -> None:
         """Render the frame and display it in the screen."""
-        layers = [(self._snake.surface, self._snake.render_pos)]
+        layers = [
+            (self._snake.surface, self._snake.render_pos),
+            (self._apple.surface, self._apple.render_pos),
+        ]
         if self._grid:
             layers.append((self._grid_surface, (0, 0)))
 

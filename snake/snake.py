@@ -51,10 +51,6 @@ class Snake:
         self._next_movement: float = time_ms()
 
     @property
-    def pos(self) -> Tuple[int, int]:
-        return self._x, self._y
-
-    @property
     def render_pos(self) -> Tuple[int, int]:
         return self._x * self._grid_size, self._y * self._grid_size
 
