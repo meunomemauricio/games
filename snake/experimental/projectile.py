@@ -5,6 +5,7 @@ from typing import Set, Tuple
 import pygame
 from pygame import draw
 from pygame.math import Vector2
+from pygame.rect import Rect
 from pygame.surface import Surface
 
 from snake.experimental.terrain import Blueprint
@@ -43,6 +44,10 @@ class Projectile:
             self._curr_pos.y,
         )
 
+    def _terrain_collision(self) -> bool:
+        """Detect collision with Terrain."""
+        return self.rect.collidelist(self._blueprint.walls)
+
     @property
     def color(self) -> Tuple[int, int, int]:
         """Projectile Color."""
@@ -59,6 +64,10 @@ class Projectile:
         return 0.05
 
     @property
+    def rect(self) -> Rect:
+        return Rect(self._curr_pos, (self.radius * 2, self.radius * 2))
+
+    @property
     def velocity(self) -> Vector2:
         """Velocity Vector."""
         return self.speed * self._dir
@@ -71,7 +80,8 @@ class Projectile:
             self.state = ProjectileState.DELETED
             return
 
-        # TODO: Detect collisions with terrain
+        if self._terrain_collision():
+            self.state = ProjectileState.DELETED
 
     def get_render_position(self, interp: float) -> Vector2:
         """Calculate the Rendering Position, in screen coordinates.

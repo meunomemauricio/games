@@ -1,4 +1,5 @@
 import json
+from enum import Enum
 from functools import cached_property
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
@@ -15,6 +16,26 @@ BPData = Dict[
     str, Union[int, str, dict, List[str]]
 ]  # TODO: Convert to dataclass
 Color = Tuple[int, int, int]
+
+
+class BlockType(str, Enum):
+
+    HERO = "H"
+    SPACE = " "
+    WALL = "|"
+
+
+class Block:
+    def __init__(self, x: int, y: int, block_size: Vector2, block_type: str):
+        self.x = x
+        self.y = y
+        self.block_size = block_size
+        self.type = BlockType(block_type)
+
+    @cached_property
+    def rect(self) -> Rect:
+        x_y = (self.x * self.block_size.x, self.y * self.block_size.y)
+        return Rect(x_y, self.block_size)
 
 
 class Blueprint:
@@ -65,6 +86,25 @@ class Blueprint:
         """Terrain Coordinates."""
         return self._data["terrain"]
 
+    @cached_property
+    def blocks(self) -> Tuple[Block]:
+        blocks = []
+        for j, row in enumerate(self.terrain):
+            for i, _type in enumerate(row):
+                blocks.append(
+                    Block(
+                        x=i, y=j, block_size=self.block_size, block_type=_type
+                    )
+                )
+
+        return tuple(blocks)
+
+    @cached_property
+    def walls(self) -> Tuple[Rect]:
+        return tuple(
+            blk.rect for blk in self.blocks if blk.type == BlockType.WALL
+        )
+
     @property
     def width(self) -> int:
         """Terrain Width."""
@@ -76,8 +116,8 @@ class Terrain:
 
     SPACE_CHAR = " "
 
-    CHAR_MAPPING: Dict[str, Color] = {
-        "*": (0xAA, 0xAA, 0xAA),
+    COLLOR_MAPPING: Dict[str, Color] = {
+        "|": (0xAA, 0xAA, 0xAA),
         "H": (0x00, 0x00, 0x00),
     }
 
@@ -97,7 +137,7 @@ class Terrain:
                 pos = (i * self._bp.block_size[0], j * self._bp.block_size[1])
                 pygame.draw.rect(
                     surface=surface,
-                    color=self.CHAR_MAPPING.get(char, PINK),
+                    color=self.COLLOR_MAPPING.get(char, PINK),
                     rect=pygame.Rect(pos, self._bp.block_size),
                 )
 
