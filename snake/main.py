@@ -39,7 +39,7 @@ class MainApp:
     GRID_WIDTH = 1
 
     #: Difference in time between ticks.
-    TICK_STEP = 20.0  # ms
+    TICK_STEP = 500.0  # ms
 
     #: Max number of rendered frames that can be skipped. This is mostly
     #  relevant on slower machines, in case the time it takes to update the
@@ -71,8 +71,8 @@ class MainApp:
 
         self._fps_font = SysFont(get_default_font(), self.FPS_SIZE)
 
-        self._snake = Snake(grid_size=self.GRID_SIZE)
-        self._apple = Apple(x=5, y=5, grid_size=self.GRID_SIZE)
+        self._snake = Snake(size=self.GRID_SIZE)
+        self._apple = Apple(x=5, y=5, size=self.GRID_SIZE)
 
     @property
     def _fps_surface(self) -> Surface:
@@ -106,7 +106,7 @@ class MainApp:
         elif event.type == pygame.KEYUP and event.key == pygame.K_q:
             raise QuitApplication
 
-    def _update_game(self, tick: float) -> None:
+    def _update_game(self) -> None:
         """Update Game State.
 
         :param tick: Current tick in ms.
@@ -115,7 +115,7 @@ class MainApp:
             self._handle_quit(event=event)
             self._snake.handle_event(event=event)
 
-        self._snake.process_movement(tick=tick)
+        self._snake.process_movement()
 
     def _render_graphics(self) -> None:
         """Render the frame and display it in the screen."""
@@ -137,9 +137,8 @@ class MainApp:
     def _main_loop(self) -> None:
         """Main Application Loop."""
         loops = 0
-        current_tick = time_ms()
-        while current_tick > self._next_tick and loops < self.MAX_FRAMESKIP:
-            self._update_game(tick=current_tick)
+        while time_ms() > self._next_tick and loops < self.MAX_FRAMESKIP:
+            self._update_game()
             self._next_tick += self.TICK_STEP
             loops += 1
 

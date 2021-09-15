@@ -1,12 +1,12 @@
 """Represent the Main Protagonist."""
 from enum import Enum
-from typing import Mapping, Tuple
+from typing import Mapping
 
 import pygame
 from pygame import Surface
 from pygame.event import Event
 
-from snake.utils import time_ms
+from snake.grid import GridElement
 
 
 class Direction(str, Enum):
@@ -18,7 +18,7 @@ class Direction(str, Enum):
     LEFT = "left"
 
 
-class Snake:
+class Snake(GridElement):
     """Snake."""
 
     #: Colors
@@ -35,29 +35,19 @@ class Snake:
     #: Snake Speed, defined as how long it takes to move a grid unit (in ms).
     SPEED = 500.0
 
-    def __init__(self, grid_size: int):
+    def __init__(self, size: int):
         """Create new Snake, controlled by the player.
 
-        :param grid_size: Size of the Grid in Pixels.
+        :param size: Size of the Grid in Pixels.
         """
-        self._grid_size = grid_size
-
-        self._x: int = 0
-        self._y: int = 0
+        super().__init__(x=0, y=0, size=size)
 
         self._direction = Direction.RIGHT
-
-        # Used to control the snake speed
-        self._next_movement: float = time_ms()
-
-    @property
-    def render_pos(self) -> Tuple[int, int]:
-        return self._x * self._grid_size, self._y * self._grid_size
 
     @property
     def surface(self) -> Surface:
         """Draw the snake on the surface."""
-        surface = Surface(size=(self._grid_size, self._grid_size))
+        surface = Surface(size=(self.size, self.size))
         surface.fill(color=self.HEAD_COLOR)
         return surface
 
@@ -68,21 +58,13 @@ class Snake:
             if new_direction:
                 self._direction = new_direction
 
-    def process_movement(self, tick: float) -> None:
-        """Process the Snake movement.
-
-        :param tick: Current tick in ms.
-        """
-        if tick < self._next_movement:
-            return
-
+    def process_movement(self) -> None:
+        """Process the Snake movement."""
         if self._direction == Direction.UP:
-            self._y -= 1
+            self.y -= 1
         elif self._direction == Direction.DOWN:
-            self._y += 1
+            self.y += 1
         elif self._direction == Direction.RIGHT:
-            self._x += 1
+            self.x += 1
         elif self._direction == Direction.LEFT:
-            self._x -= 1
-
-        self._next_movement += self.SPEED
+            self.x -= 1
