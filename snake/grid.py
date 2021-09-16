@@ -13,35 +13,34 @@ class Grid:
 
     def __init__(
         self,
-        width: int,
-        height: int,
+        size: Tuple[int, int],
+        step: int,
         alpha: int,
         color: Tuple[int, int, int],
         line: int,
-        step: int,
     ):
         """Create a new Grid.
 
-        :param width: Total grid width.
-        :param height: Total grid height.
+        :param step: Step size in px (square cells).
+        :param size: Grid Size, the total number of cells in each coordinate.
         :param alpha: Grid alpha.
         :param color: Grid color.
         :param line: Line Width in px.
-        :param step: Step size in px (assumed square).
         """
-        self.width = width
-        self.height = height
+        self.step = step
+        self.size = size
+
         self.alpha = alpha
         self.color = color
         self.line = line
-        self.step = step
+
+        self.resolution = size[0] * step, size[1] * step
+        self.width, self.height = self.resolution
 
     @cached_property
     def surface(self) -> Surface:
         """A surface representing the Grid."""
-        surface = Surface(
-            size=(self.width, self.height), flags=pygame.SRCALPHA
-        )
+        surface = Surface(size=self.resolution, flags=pygame.SRCALPHA)
         surface.set_alpha(self.alpha)
         for x in range(0, self.width, self.step):
             for y in range(0, self.height, self.step):

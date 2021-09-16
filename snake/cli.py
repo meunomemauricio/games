@@ -12,9 +12,9 @@ def cli():
 
 
 @cli.command()
-@click.option("-f", "--fps/--no-fps", default=False)
-def run(fps: bool):
-    MainApp(show_fps=fps).run()
+@click.option("-d", "--debug/--no-debug", default=False)
+def run(debug: bool):
+    MainApp(debug=debug).run()
 
 
 @cli.command()

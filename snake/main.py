@@ -35,7 +35,6 @@ class MainApp:
 
     WIDTH = 800
     HEIGHT = 800
-    SIZE = (WIDTH, HEIGHT)
 
     BG_COLOR = (0x00, 0x00, 0x00)
 
@@ -47,7 +46,8 @@ class MainApp:
     GRID_ALPHA = 50
     GRID_COLOR = (0xFF, 0xFF, 0xFF)
     GRID_LINE = 1
-    GRID_STEP = 20
+    GRID_SIZE = (20, 20)
+    GRID_STEP = 80
 
     #: Difference in time between ticks.
     TICK_STEP = 10.0  # ms
@@ -58,14 +58,14 @@ class MainApp:
 
     MAX_FRAMESKIP = 10
 
-    def __init__(self, show_fps: bool):
+    def __init__(self, debug: bool):
         """Main Application.
 
         :param bp_name: Name of the Blueprint to be loaded.
         :param grid: If `True`, draw a grid on top of the screen.
-        :param show_fps: If `True`, render the FPS on screen.
+        :param debug: If `True`, render the debug info on screen.
         """
-        self._show_fps = show_fps
+        self._debug = debug
 
         # Init PyGame
         pygame.init()
@@ -77,26 +77,26 @@ class MainApp:
         self._running = True
 
         # Game Elements
-        self._screen = pygame.display.set_mode(size=(self.WIDTH, self.HEIGHT))
-
         self._fps_font = SysFont(get_default_font(), self.FPS_SIZE)
-
         self._grid = Grid(
-            width=self.WIDTH,
-            height=self.HEIGHT,
+            size=self.GRID_SIZE,
+            step=self.GRID_STEP,
             alpha=self.GRID_ALPHA,
             color=self.GRID_COLOR,
             line=self.GRID_LINE,
-            step=self.GRID_STEP,
         )
+        self._screen = pygame.display.set_mode(size=self._grid.resolution)
         self._snake = Snake(grid=self._grid)
         self._apple = Apple(grid=self._grid)
 
     @property
-    def _fps_surface(self) -> Surface:
+    def _debug_surface(self) -> Surface:
         """FPS Meter Surface."""
-        msg = f"FPS: {self._render_clock.get_fps()}"
-        return self._fps_font.render(msg, True, self.FPS_COLOR)
+        msg = (
+            f"FPS: {self._render_clock.get_fps()}",
+            f"Snake: x={self._snake.x} y={self._snake.y}",
+        )
+        return self._fps_font.render(" | ".join(msg), True, self.FPS_COLOR)
 
     def _update_game(self, tick: float) -> None:
         """Update Game State.
@@ -117,8 +117,8 @@ class MainApp:
             (self._snake.surface, self._snake.render_pos),
             (self._grid.surface, (0, 0)),
         ]
-        if self._show_fps:
-            layers.append((self._fps_surface, (0, 0)))
+        if self._debug:
+            layers.append((self._debug_surface, (0, 0)))
 
         self._screen.fill(color=self.BG_COLOR)
         self._screen.blits(layers)
