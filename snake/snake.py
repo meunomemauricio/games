@@ -10,9 +10,10 @@ from snake.grid import GridElement
 from snake.utils import time_ms
 
 
-class Direction(str, Enum):
-    """Snake Direction."""
+class State(str, Enum):
+    """Snake State."""
 
+    STOPPED = "stopped"
     UP = "up"
     DOWN = "down"
     RIGHT = "right"
@@ -20,25 +21,25 @@ class Direction(str, Enum):
 
 
 class Snake(GridElement):
-    """Snake."""
+    """🐍."""
 
     #: Colors
     HEAD_COLOR = (0x00, 0xFF, 0x00)
 
-    #: Convert a pygame event into a Snake Direction.
-    DIRECTION_MAP: Mapping[Event, Direction] = {
-        pygame.K_UP: Direction.UP,
-        pygame.K_DOWN: Direction.DOWN,
-        pygame.K_RIGHT: Direction.RIGHT,
-        pygame.K_LEFT: Direction.LEFT,
+    #: Convert a pygame event into a Snake State.
+    STATE_MAP: Mapping[Event, State] = {
+        pygame.K_UP: State.UP,
+        pygame.K_DOWN: State.DOWN,
+        pygame.K_RIGHT: State.RIGHT,
+        pygame.K_LEFT: State.LEFT,
     }
 
-    #: Used to prevent the snake from reversing on itself.
-    FORBIDDEN_MOVEMENT: Mapping[Direction, Event] = {
-        Direction.UP: pygame.K_DOWN,
-        Direction.DOWN: pygame.K_UP,
-        Direction.RIGHT: pygame.K_LEFT,
-        Direction.LEFT: pygame.K_RIGHT,
+    #: Prevent the snake from reversing on itself.
+    FORBIDDEN_MOVEMENT: Mapping[State, Event] = {
+        State.UP: pygame.K_DOWN,
+        State.DOWN: pygame.K_UP,
+        State.RIGHT: pygame.K_LEFT,
+        State.LEFT: pygame.K_RIGHT,
     }
 
     #: Snake Speed, defined as how long it takes to move a grid unit (in ms).
@@ -51,10 +52,11 @@ class Snake(GridElement):
         """
         super().__init__(x=0, y=0, step=step)
 
-        self._direction = Direction.RIGHT  # Current Direction
-        self._next_direction = Direction.RIGHT  # After Input
+        self._state = State.STOPPED
+        self._next_state = State.STOPPED  # State after handling input.
 
-        # Used to control snake speed
+        # The moment from which it's possible to process movement again. Start
+        # as the current time so it's executed right away.
         self._next_movement = time_ms()
 
     @property
@@ -65,17 +67,20 @@ class Snake(GridElement):
         return surface
 
     def handle_event(self, event: Event) -> None:
-        """Handle events."""
+        """Handle events.
+
+        :param event: Pygame Event to be handled.
+        """
         if event.type != pygame.KEYDOWN:
             return
 
-        forbidden = self.FORBIDDEN_MOVEMENT.get(self._direction)
+        forbidden = self.FORBIDDEN_MOVEMENT.get(self._state)
         if event.key == forbidden:
             return
 
-        new_direction = self.DIRECTION_MAP.get(event.key)
-        if new_direction:
-            self._next_direction = new_direction
+        next_state = self.STATE_MAP.get(event.key)
+        if next_state:
+            self._next_state = next_state
 
     def process_movement(self, tick: float) -> None:
         """Process the Snake movement.
@@ -85,15 +90,18 @@ class Snake(GridElement):
         if tick < self._next_movement:
             return
 
-        self._direction = self._next_direction
+        self._state = self._next_state
+        if self._state == State.STOPPED:
+            self._next_movement += self.SPEED
+            return
 
-        if self._direction == Direction.UP:
+        if self._state == State.UP:
             self.y -= 1
-        elif self._direction == Direction.DOWN:
+        elif self._state == State.DOWN:
             self.y += 1
-        elif self._direction == Direction.RIGHT:
+        elif self._state == State.RIGHT:
             self.x += 1
-        elif self._direction == Direction.LEFT:
+        elif self._state == State.LEFT:
             self.x -= 1
 
         self._next_movement += self.SPEED

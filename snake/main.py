@@ -16,6 +16,17 @@ class QuitApplication(Exception):
     """Quit the application if raised inside the Main Loop."""
 
 
+def handle_quit(event: Event) -> None:
+    """Handle the Quit events.
+
+    :param event: PyGame Event object.
+    """
+    if event.type == pygame.QUIT:
+        raise QuitApplication
+    elif event.type == pygame.KEYUP and event.key == pygame.K_q:
+        raise QuitApplication
+
+
 class MainApp:
     """Main application."""
 
@@ -87,23 +98,13 @@ class MainApp:
         msg = f"FPS: {self._render_clock.get_fps()}"
         return self._fps_font.render(msg, True, self.FPS_COLOR)
 
-    def _handle_quit(self, event: Event) -> None:
-        """Handle the Quit events.
-
-        :param event: PyGame Event object.
-        """
-        if event.type == pygame.QUIT:
-            raise QuitApplication
-        elif event.type == pygame.KEYUP and event.key == pygame.K_q:
-            raise QuitApplication
-
     def _update_game(self, tick: float) -> None:
         """Update Game State.
 
         :param tick: Current tick in ms.
         """
         for event in pygame.event.get():
-            self._handle_quit(event=event)
+            handle_quit(event=event)
             self._snake.handle_event(event=event)
 
         self._snake.process_movement(tick=tick)
