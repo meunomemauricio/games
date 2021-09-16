@@ -1,4 +1,5 @@
 """Snake's favorite(?) food."""
+import random
 from functools import cached_property
 
 import pygame
@@ -27,3 +28,8 @@ class Apple(GridElement):
             radius=self.size // 2,
         )
         return surface
+
+    def shuffle_position(self) -> None:
+        """Shuffle the Apple position."""
+        self.x = random.randint(1, 10)
+        self.y = random.randint(1, 10)

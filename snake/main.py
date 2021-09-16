@@ -108,6 +108,7 @@ class MainApp:
             self._snake.handle_event(event=event)
 
         self._snake.process_movement(tick=tick)
+        self._snake.detect_collision(apple=self._apple)
 
     def _render_graphics(self) -> None:
         """Render the frame and display it in the screen."""

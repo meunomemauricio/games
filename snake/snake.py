@@ -6,6 +6,7 @@ import pygame
 from pygame import Surface
 from pygame.event import Event
 
+from snake.apple import Apple
 from snake.grid import GridElement
 from snake.utils import time_ms
 
@@ -65,6 +66,18 @@ class Snake(GridElement):
         surface = Surface(size=(self.size, self.size))
         surface.fill(color=self.HEAD_COLOR)
         return surface
+
+    def _handle_apple_collision(self, apple: Apple):
+        """Handle the case in which the head is colliding with the Apple."""
+        apple.shuffle_position()
+
+    def detect_collision(self, apple: Apple) -> None:
+        """Detect Collision between Snake and other game elements.
+
+        :param apple: Food.
+        """
+        if self.x == apple.x and self.y == apple.y:
+            self._handle_apple_collision(apple=apple)
 
     def handle_event(self, event: Event) -> None:
         """Handle events.
