@@ -89,8 +89,8 @@ class MainApp:
             line=self.GRID_LINE,
             step=self.GRID_STEP,
         )
-        self._snake = Snake(step=self._grid.step)
-        self._apple = Apple(x=5, y=5, step=self._grid.step)
+        self._snake = Snake(grid=self._grid)
+        self._apple = Apple(grid=self._grid)
 
     @property
     def _fps_surface(self) -> Surface:

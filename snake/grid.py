@@ -1,37 +1,11 @@
 """Define the grid and its generic elements."""
+import random
 from functools import cached_property
 from typing import Tuple
 
 import pygame
 from pygame.rect import Rect
 from pygame.surface import Surface
-
-
-class GridElement:
-    """An element that fit into a Grid unit."""
-
-    def __init__(self, x: int, y: int, step: int):
-        """Create new Grid Element.
-
-        :param x: Initial horizontal position, in grid coordinates.
-        :param y: Initial vertical position, in grid coordinates.
-        :param step: Grid Step in px.
-        """
-        self.x = x
-        self.y = y
-        self.size = step
-
-    @property
-    def rect(self) -> Rect:
-        """Rectangle representing the element."""
-        return Rect(
-            self.x * self.size, self.y * self.size, self.size, self.size
-        )
-
-    @property
-    def render_pos(self) -> Tuple[int, int]:
-        """Render position in screen coordinates."""
-        return self.x * self.size, self.y * self.size
 
 
 class Grid:
@@ -79,3 +53,34 @@ class Grid:
                 )
 
         return surface
+
+
+class GridElement:
+    """An element that fit into a Grid unit."""
+
+    def __init__(self, grid: Grid):
+        """Create new Grid Element.
+
+        :param x: Initial horizontal position, in grid coordinates.
+        :param y: Initial vertical position, in grid coordinates.
+        :param grid: Grid object.
+        """
+        self._grid = grid
+
+        self.x = random.randint(1, 10)
+        self.y = random.randint(1, 10)
+
+    @property
+    def rect(self) -> Rect:
+        """Rectangle representing the element."""
+        return Rect(
+            self.x * self._grid.step,
+            self.y * self._grid.step,
+            self._grid.step,
+            self._grid.step,
+        )
+
+    @property
+    def render_pos(self) -> Tuple[int, int]:
+        """Render position in screen coordinates."""
+        return self.x * self._grid.step, self.y * self._grid.step

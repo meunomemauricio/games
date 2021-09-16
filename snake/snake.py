@@ -7,7 +7,7 @@ from pygame import Surface
 from pygame.event import Event
 
 from snake.apple import Apple
-from snake.grid import GridElement
+from snake.grid import Grid, GridElement
 from snake.utils import time_ms
 
 
@@ -44,14 +44,14 @@ class Snake(GridElement):
     }
 
     #: Snake Speed, defined as how long it takes to move a grid unit (in ms).
-    SPEED = 500.0
+    SPEED = 200.0
 
-    def __init__(self, step: int):
+    def __init__(self, grid: Grid):
         """Create new Snake, controlled by the player.
 
-        :param step: Size of the Grid in px.
+        :param grid: Object representing the grid.
         """
-        super().__init__(x=0, y=0, step=step)
+        super().__init__(grid=grid)
 
         self._state = State.STOPPED
         self._next_state = State.STOPPED  # State after handling input.
@@ -63,7 +63,7 @@ class Snake(GridElement):
     @property
     def surface(self) -> Surface:
         """Draw the snake on the surface."""
-        surface = Surface(size=(self.size, self.size))
+        surface = Surface(size=(self._grid.step, self._grid.step))
         surface.fill(color=self.HEAD_COLOR)
         return surface
 

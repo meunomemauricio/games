@@ -20,12 +20,12 @@ class Apple(GridElement):
 
         Currently represented as a circle.
         """
-        surface = Surface(size=(self.size, self.size))
+        surface = Surface(size=(self._grid.step, self._grid.step))
         pygame.draw.circle(
             surface=surface,
             color=self.COLOR,
-            center=(self.size // 2, self.size // 2),
-            radius=self.size // 2,
+            center=(self._grid.step // 2, self._grid.step // 2),
+            radius=self._grid.step // 2,
         )
         return surface
 
