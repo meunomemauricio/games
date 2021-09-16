@@ -111,8 +111,8 @@ class MainApp:
     def _render_graphics(self) -> None:
         """Render the frame and display it in the screen."""
         layers = [
-            (self._snake.surface, self._snake.render_pos),
             (self._apple.surface, self._apple.render_pos),
+            (self._snake.surface, self._snake.render_pos),
             (self._grid.surface, (0, 0)),
         ]
         if self._show_fps:
