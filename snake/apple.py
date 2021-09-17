@@ -32,7 +32,8 @@ class Apple(GridElement):
         )
         return surface
 
-    def shuffle_position(self) -> None:
+    def respawn(self) -> None:
         """Shuffle the Apple position."""
+        # FIXME: Needs to avoid spawning under the snake body...
         self.x = random.randint(0, self._grid.size[0] - 1)
         self.y = random.randint(0, self._grid.size[1] - 1)

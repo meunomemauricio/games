@@ -1,7 +1,8 @@
 """Represent the Main Protagonist."""
+from collections import deque
 from enum import Enum
 from functools import cached_property
-from typing import List, Mapping
+from typing import Mapping
 
 import pygame
 from pygame import Surface
@@ -23,15 +24,6 @@ class State(str, Enum):
     LEFT = "L"
 
 
-class Collision(str, Enum):
-    """Collision State."""
-
-    NONE = "N"
-    APPLE = "A"
-    BODY = "B"
-    SCREEN = "S"
-
-
 class Segment(GridElement):
     """Snake Body Segment."""
 
@@ -45,10 +37,8 @@ class Segment(GridElement):
         return surface
 
 
-class Snake(Segment):
+class Snake:
     """🐍."""
-
-    COLOR = (0x00, 0xFF, 0x00)
 
     #: Convert a pygame event into a Snake State.
     STATE_MAP: Mapping[Event, State] = {
@@ -73,25 +63,33 @@ class Snake(Segment):
         """Create new Snake, controlled by the player.
 
         :param grid: Object representing the grid.
+        :param apple: Apple object.
         """
-        super().__init__(grid=grid)
-
+        self._grid = grid
         self._apple = apple
 
         self._state = State.STOPPED
         self._next_state = State.STOPPED  # State after handling input.
 
-        self._last_collision = Collision.NONE
-
-        self.body: List[Segment] = []
+        #: Snake Body, represented as a Deque.
+        #:
+        #: The leftmost (body[0]) element is the head and the last element is
+        #: the tail.
+        #:
+        #: For every step (without collision), a new head is created in the
+        #: next grid cell (position based on next state) and the tail segment
+        #: is removed. If it collides with the apple, the tail is kept, giving
+        #: the impression that the snake has grown. Each in-between segment is
+        #: kept in place, preserving its shape.
+        self.body: deque[Segment] = deque([Segment(grid=grid)])
 
     def __len__(self) -> int:
-        """Snake Length, in number of segments, including the head."""
-        return len(self.body) + 1
+        """Number of segments."""
+        return len(self.body)
 
     def __str__(self) -> str:
         """Debug information."""
-        return f"Snake: x={self.x} y={self.y} B={len(self)}"
+        return f"Snake: x={self.body[0].x} y={self.body[0].y} B={len(self)}"
 
     def handle_event(self, event: Event) -> None:
         """Handle Game Events.
@@ -110,32 +108,39 @@ class Snake(Segment):
             self._next_state = next_state
 
     def _process_movement(self) -> None:
-        """Process the Snake movement."""
+        """Process the Snake movement.
+
+        Create new head, based on the current state.
+        """
+        new_x = self.body[0].x
+        new_y = self.body[0].y
         if self._state == State.UP:
-            self.y -= 1
+            new_y -= 1
         elif self._state == State.DOWN:
-            self.y += 1
+            new_y += 1
         elif self._state == State.RIGHT:
-            self.x += 1
+            new_x += 1
         elif self._state == State.LEFT:
-            self.x -= 1
+            new_x -= 1
+
+        new_head = Segment(grid=self._grid, x=new_x, y=new_y)
+        self.body.appendleft(new_head)
 
     def _process_collision(self) -> None:
         """Detect Collision between Snake and other game elements."""
-        if self.x == self._apple.x and self.y == self._apple.y:
-            self._apple.shuffle_position()
-            self._last_collision = Collision.APPLE
-            return
+        if self.body[0].x == self._apple.x and self.body[0].y == self._apple.y:
+            self._apple.respawn()
+            return  # Skip the pop, so we'll grow
+
+        # Remove the last segment of the snake after each movement, as the
+        # default case, since the movement added a new segment.
+        self.body.pop()
 
     def update_state(self) -> None:
         """Update the Snake state."""
         self._state = self._next_state
         if self._state == State.STOPPED:
             return
-
-        if self._last_collision == Collision.APPLE:
-            self.body.append(Segment(grid=self._grid, x=self.x, y=self.y))
-            self._last_collision = Collision.NONE
 
         self._process_movement()
         self._process_collision()

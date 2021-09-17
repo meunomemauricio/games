@@ -1,5 +1,5 @@
 """Main Application."""
-from typing import List
+from typing import Iterable
 
 import pygame
 from pygame.event import Event
@@ -30,10 +30,6 @@ class MainApp:
 
     #: Screen/Window parameters.
     CAPTION = "Snake v0.1"
-
-    WIDTH = 800
-    HEIGHT = 800
-
     BG_COLOR = (0x00, 0x00, 0x00)
 
     #: FPS meter parameters.
@@ -45,7 +41,7 @@ class MainApp:
     GRID_COLOR = (0xFF, 0xFF, 0xFF)
     GRID_LINE = 1
     GRID_SIZE = (20, 20)
-    GRID_STEP = 80
+    GRID_STEP = 30
 
     #: Difference in time between ticks (Basically, the snake speed...)
     TICK_STEP = 250.0  # ms
@@ -82,7 +78,7 @@ class MainApp:
         self._screen = pygame.display.set_mode(size=self._grid.resolution)
 
     @property
-    def _debug_surface(self) -> List[Layer]:
+    def _debug_surface(self) -> Iterable[Layer]:
         """Debug text layers."""
         return multi_text(
             font=self._fps_font,

@@ -64,7 +64,6 @@ class Grid:
         layers = [
             (self.base_surface, (0, 0)),
             (self.apple.surface, self.apple.render_pos),
-            (self.snake.surface, self.snake.render_pos),
         ]
         layers.extend((b.surface, b.render_pos) for b in self.snake.body)
         return layers

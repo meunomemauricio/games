@@ -31,6 +31,7 @@ class GridElement(ABC):
         self._grid = grid
         self.x = x if x is not None else randint(0, self._grid.size[0] - 1)
         self.y = y if y is not None else randint(0, self._grid.size[1] - 1)
+        # Use pink to highlight default case.
         self.color = color if color is not None else PINK
 
     @property
