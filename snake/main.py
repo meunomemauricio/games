@@ -9,7 +9,7 @@ from pygame.time import Clock
 from snake.apple import Apple
 from snake.grid import Grid
 from snake.snake import Snake
-from snake.utils import time_ms
+from snake.utils import multi_text, time_ms
 
 
 class QuitApplication(Exception):
@@ -39,8 +39,8 @@ class MainApp:
     BG_COLOR = (0x00, 0x00, 0x00)
 
     #: FPS meter parameters.
-    FPS_SIZE = 25
-    FPS_COLOR = (0xFF, 0x00, 0x00)
+    DEBUG_SIZE = 25
+    DEBUG_COLOR = (0xFF, 0x00, 0x00)
 
     #: Grid parameters.
     GRID_ALPHA = 50
@@ -77,7 +77,7 @@ class MainApp:
         self._running = True
 
         # Game Elements
-        self._fps_font = SysFont(get_default_font(), self.FPS_SIZE)
+        self._fps_font = SysFont(get_default_font(), size=self.DEBUG_SIZE)
         self._grid = Grid(
             size=self.GRID_SIZE,
             step=self.GRID_STEP,
@@ -92,11 +92,14 @@ class MainApp:
     @property
     def _debug_surface(self) -> Surface:
         """FPS Meter Surface."""
-        msg = (
-            f"FPS: {self._render_clock.get_fps()}",
-            f"Snake: x={self._snake.x} y={self._snake.y}",
+        return multi_text(
+            font=self._fps_font,
+            color=self.DEBUG_COLOR,
+            msgs=(
+                f"FPS: {self._render_clock.get_fps()}",
+                f"Snake: x={self._snake.x} y={self._snake.y}",
+            ),
         )
-        return self._fps_font.render(" | ".join(msg), True, self.FPS_COLOR)
 
     def _update_game(self, tick: float) -> None:
         """Update Game State.
