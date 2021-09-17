@@ -1,11 +1,12 @@
 """Define the grid and its generic elements."""
-import random
 from functools import cached_property
 from typing import Tuple
 
 import pygame
-from pygame.rect import Rect
 from pygame.surface import Surface
+
+from snake.apple import Apple
+from snake.snake import Snake
 
 
 class Grid:
@@ -37,9 +38,12 @@ class Grid:
         self.resolution = size[0] * step, size[1] * step
         self.width, self.height = self.resolution
 
+        self.apple = Apple(grid=self)
+        self.snake = Snake(grid=self, apple=self.apple)
+
     @cached_property
-    def surface(self) -> Surface:
-        """A surface representing the Grid."""
+    def base_surface(self) -> Surface:
+        """Base surface representing the Grid."""
         surface = Surface(size=self.resolution, flags=pygame.SRCALPHA)
         surface.set_alpha(self.alpha)
         for x in range(0, self.width, self.step):
@@ -53,33 +57,15 @@ class Grid:
 
         return surface
 
-
-class GridElement:
-    """An element that fit into a Grid unit."""
-
-    def __init__(self, grid: Grid):
-        """Create new Grid Element.
-
-        :param x: Initial horizontal position, in grid coordinates.
-        :param y: Initial vertical position, in grid coordinates.
-        :param grid: Grid object.
-        """
-        self._grid = grid
-
-        self.x = random.randint(1, 10)
-        self.y = random.randint(1, 10)
-
     @property
-    def rect(self) -> Rect:
-        """Rectangle representing the element."""
-        return Rect(
-            self.x * self._grid.step,
-            self.y * self._grid.step,
-            self._grid.step,
-            self._grid.step,
-        )
-
-    @property
-    def render_pos(self) -> Tuple[int, int]:
-        """Render position in screen coordinates."""
-        return self.x * self._grid.step, self.y * self._grid.step
+    def surface(self) -> Surface:
+        """Grid with other game elements rendered."""
+        surface = Surface(size=self.resolution, flags=pygame.SRCALPHA)
+        layers = [
+            (self.base_surface, (0, 0)),
+            (self.apple.surface, self.apple.render_pos),
+            (self.snake.surface, self.snake.render_pos),
+        ]
+        # layers.extend((b.surface, b.render_pos) for b in self.snake.body)
+        surface.blits(layers)
+        return surface

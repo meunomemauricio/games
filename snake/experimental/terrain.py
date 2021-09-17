@@ -9,7 +9,8 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.surface import Surface
 
-PINK = (0xFF, 0x00, 0xFF)
+from snake.utils import PINK
+
 BLUEPRINT_DIR = Path(__file__).parent / "blueprints"
 
 BPData = Dict[

@@ -5,7 +5,7 @@ from functools import cached_property
 import pygame
 from pygame.surface import Surface
 
-from snake.grid import GridElement
+from snake.elements import GridElement
 
 
 class Apple(GridElement):
@@ -13,6 +13,9 @@ class Apple(GridElement):
 
     #: Apple Color
     COLOR = (0xFF, 0x00, 0x00)
+
+    def __str__(self) -> str:
+        return f"Apple: x={self.x} y={self.y}"
 
     @cached_property
     def surface(self) -> Surface:
@@ -31,5 +34,5 @@ class Apple(GridElement):
 
     def shuffle_position(self) -> None:
         """Shuffle the Apple position."""
-        self.x = random.randint(0, self._grid.size[0])
-        self.y = random.randint(0, self._grid.size[0])
+        self.x = random.randint(0, self._grid.size[0] - 1)
+        self.y = random.randint(0, self._grid.size[1] - 1)

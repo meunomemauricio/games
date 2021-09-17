@@ -1,31 +1,54 @@
 """Represent the Main Protagonist."""
 from enum import Enum
-from typing import Mapping
+from functools import cached_property
+from typing import List, Mapping
 
 import pygame
 from pygame import Surface
 from pygame.event import Event
 
 from snake.apple import Apple
-from snake.grid import Grid, GridElement
-from snake.utils import time_ms
+from snake.elements import GridElement
+
+Grid = "snake.grid.Grid"
 
 
 class State(str, Enum):
     """Snake State."""
 
-    STOPPED = "stopped"
-    UP = "up"
-    DOWN = "down"
-    RIGHT = "right"
-    LEFT = "left"
+    STOPPED = "S"
+    UP = "U"
+    DOWN = "D"
+    RIGHT = "R"
+    LEFT = "L"
 
 
-class Snake(GridElement):
+class Collision(str, Enum):
+    """Collision State."""
+
+    NONE = "N"
+    APPLE = "A"
+    BODY = "B"
+    SCREEN = "S"
+
+
+class Segment(GridElement):
+    """Snake Body Segment."""
+
+    COLOR = (0x00, 0xBB, 0x00)
+
+    @cached_property
+    def surface(self) -> Surface:
+        """Draw the Segment Surface."""
+        surface = Surface(size=(self._grid.step, self._grid.step))
+        surface.fill(color=self.COLOR)
+        return surface
+
+
+class Snake(Segment):
     """🐍."""
 
-    #: Colors
-    HEAD_COLOR = (0x00, 0xFF, 0x00)
+    COLOR = (0x00, 0xFF, 0x00)
 
     #: Convert a pygame event into a Snake State.
     STATE_MAP: Mapping[Event, State] = {
@@ -46,41 +69,32 @@ class Snake(GridElement):
     #: Snake Speed, defined as how long it takes to move a grid unit (in ms).
     SPEED = 200.0
 
-    def __init__(self, grid: Grid):
+    def __init__(self, grid: Grid, apple: Apple):
         """Create new Snake, controlled by the player.
 
         :param grid: Object representing the grid.
         """
         super().__init__(grid=grid)
 
+        self._apple = apple
+
         self._state = State.STOPPED
         self._next_state = State.STOPPED  # State after handling input.
 
-        # The moment from which it's possible to process movement again. Start
-        # as the current time so it's executed right away.
-        self._next_movement = time_ms()
+        self._last_collision = Collision.NONE
 
-    @property
-    def surface(self) -> Surface:
-        """Draw the snake on the surface."""
-        surface = Surface(size=(self._grid.step, self._grid.step))
-        surface.fill(color=self.HEAD_COLOR)
-        return surface
+        self.body: List[Segment] = []
 
-    def _handle_apple_collision(self, apple: Apple):
-        """Handle the case in which the head is colliding with the Apple."""
-        apple.shuffle_position()
+    def __len__(self) -> int:
+        """Snake Length, including the head."""
+        return len(self.body) + 1
 
-    def detect_collision(self, apple: Apple) -> None:
-        """Detect Collision between Snake and other game elements.
-
-        :param apple: Food.
-        """
-        if self.x == apple.x and self.y == apple.y:
-            self._handle_apple_collision(apple=apple)
+    def __str__(self) -> str:
+        """Debug information."""
+        return f"Snake: x={self.x} y={self.y} B={len(self)}"
 
     def handle_event(self, event: Event) -> None:
-        """Handle events.
+        """Handle Game Events.
 
         :param event: Pygame Event to be handled.
         """
@@ -95,19 +109,8 @@ class Snake(GridElement):
         if next_state:
             self._next_state = next_state
 
-    def process_movement(self, tick: float) -> None:
-        """Process the Snake movement.
-
-        :param tick: Current tick in ms.
-        """
-        if tick < self._next_movement:
-            return
-
-        self._state = self._next_state
-        if self._state == State.STOPPED:
-            self._next_movement += self.SPEED
-            return
-
+    def _process_movement(self) -> None:
+        """Process the Snake movement."""
         if self._state == State.UP:
             self.y -= 1
         elif self._state == State.DOWN:
@@ -117,4 +120,22 @@ class Snake(GridElement):
         elif self._state == State.LEFT:
             self.x -= 1
 
-        self._next_movement += self.SPEED
+    def _process_collision(self) -> None:
+        """Detect Collision between Snake and other game elements."""
+        if self.x == self._apple.x and self.y == self._apple.y:
+            self._apple.shuffle_position()
+            self._last_collision = Collision.APPLE
+            return
+
+    def update_state(self) -> None:
+        """Update the Snake state."""
+        self._state = self._next_state
+        if self._state == State.STOPPED:
+            return
+
+        if self._last_collision == Collision.APPLE:
+            self.body.append(Segment(grid=self._grid, x=self.x, y=self.y))
+            self._last_collision = Collision.NONE
+
+        self._process_movement()
+        self._process_collision()

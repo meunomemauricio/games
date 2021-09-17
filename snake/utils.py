@@ -3,8 +3,11 @@
 import time
 from typing import Iterable, Tuple
 
+from pygame.color import Color
 from pygame.font import Font
 from pygame.surface import Surface
+
+PINK = Color(0xFF, 0x00, 0xFF)
 
 
 def time_ms() -> float:
