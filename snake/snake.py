@@ -56,9 +56,6 @@ class Snake:
         State.LEFT: pygame.K_RIGHT,
     }
 
-    #: Snake Speed, defined as how long it takes to move a grid unit (in ms).
-    SPEED = 200.0
-
     def __init__(self, grid: Grid, apple: Apple):
         """Create new Snake, controlled by the player.
 
@@ -130,10 +127,9 @@ class Snake:
         """Detect Collision between Snake and other game elements."""
         if self.body[0].x == self._apple.x and self.body[0].y == self._apple.y:
             self._apple.respawn()
-            return  # Skip the pop, so we'll grow
+            return  # Skip the pop, so it'll grow.
 
-        # Remove the last segment of the snake after each movement, as the
-        # default case, since the movement added a new segment.
+        # Remove tail after each movement to preserve its length.
         self.body.pop()
 
     def update_state(self) -> None:

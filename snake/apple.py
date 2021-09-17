@@ -9,7 +9,7 @@ from snake.elements import GridElement
 
 
 class Apple(GridElement):
-    """Apple"""
+    """Apple."""
 
     #: Apple Color
     COLOR = (0xFF, 0x00, 0x00)

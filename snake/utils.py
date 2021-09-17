@@ -20,8 +20,8 @@ def time_ms() -> float:
 def multi_text(
     font: Font, color: Tuple[int, int, int], msgs: Iterable[str]
 ) -> Iterable[Layer]:
-    """Generate a surface from multiple text messages."""
-    total_y = sum(font.size(msg)[1] for msg in msgs)
+    """Convert a list of messages into Layers to be blitted to the screen."""
+    total_y = sum(font.size(msg)[1] for msg in msgs)  # Sum of vertical size
     surfaces = [font.render(msg, True, color) for msg in msgs]
     positions = [(0, y) for y in range(0, total_y, font.get_height())]
     return zip(surfaces, positions)
