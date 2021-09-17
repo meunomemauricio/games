@@ -1,92 +1,142 @@
 """Represent the Main Protagonist."""
+from collections import deque
 from enum import Enum
-from typing import Mapping, Tuple
+from functools import cached_property
+from typing import Mapping
 
 import pygame
 from pygame import Surface
 from pygame.event import Event
 
-from snake.utils import time_ms
+from snake.apple import Apple
+from snake.elements import GridElement
+
+Grid = "snake.grid.Grid"
 
 
-class Direction(str, Enum):
-    """Snake Direction."""
+class State(str, Enum):
+    """Snake State."""
 
-    UP = "up"
-    DOWN = "down"
-    RIGHT = "right"
-    LEFT = "left"
+    STOPPED = "S"
+    UP = "U"
+    DOWN = "D"
+    RIGHT = "R"
+    LEFT = "L"
+
+
+class Segment(GridElement):
+    """Snake Body Segment."""
+
+    COLOR = (0x00, 0xBB, 0x00)
+
+    @cached_property
+    def surface(self) -> Surface:
+        """Draw the Segment Surface."""
+        surface = Surface(size=(self._grid.step, self._grid.step))
+        surface.fill(color=self.COLOR)
+        return surface
 
 
 class Snake:
-    """Snake."""
+    """🐍."""
 
-    #: Colors
-    HEAD_COLOR = (0x00, 0xFF, 0x00)
-
-    #: Convert a pygame event into a Snake Direction.
-    DIRECTION_MAP: Mapping[Event, Direction] = {
-        pygame.K_UP: Direction.UP,
-        pygame.K_DOWN: Direction.DOWN,
-        pygame.K_RIGHT: Direction.RIGHT,
-        pygame.K_LEFT: Direction.LEFT,
+    #: Convert a pygame event into a Snake State.
+    STATE_MAP: Mapping[Event, State] = {
+        pygame.K_UP: State.UP,
+        pygame.K_DOWN: State.DOWN,
+        pygame.K_RIGHT: State.RIGHT,
+        pygame.K_LEFT: State.LEFT,
     }
 
-    #: Snake Speed, defined as how long it takes to move a grid unit (in ms).
-    SPEED = 500.0
+    #: Prevent the snake from reversing on itself.
+    FORBIDDEN_MOVEMENT: Mapping[State, Event] = {
+        State.UP: pygame.K_DOWN,
+        State.DOWN: pygame.K_UP,
+        State.RIGHT: pygame.K_LEFT,
+        State.LEFT: pygame.K_RIGHT,
+    }
 
-    def __init__(self, grid_size: int):
+    def __init__(self, grid: Grid, apple: Apple):
         """Create new Snake, controlled by the player.
 
-        :param grid_size: Size of the Grid in Pixels.
+        :param grid: Object representing the grid.
+        :param apple: Apple object.
         """
-        self._grid_size = grid_size
+        self._grid = grid
+        self._apple = apple
 
-        self._x: int = 0
-        self._y: int = 0
+        self._state = State.STOPPED
+        self._next_state = State.STOPPED  # State after handling input.
 
-        self._direction = Direction.RIGHT
+        #: Snake Body, represented as a Deque.
+        #:
+        #: The leftmost (body[0]) element is the head and the last element is
+        #: the tail.
+        #:
+        #: For every step (without collision), a new head is created in the
+        #: next grid cell (position based on next state) and the tail segment
+        #: is removed. If it collides with the apple, the tail is kept, giving
+        #: the impression that the snake has grown. Each in-between segment is
+        #: kept in place, preserving its shape.
+        self.body: deque[Segment] = deque([Segment(grid=grid)])
 
-        # Used to control the snake speed
-        self._next_movement: float = time_ms()
+    def __len__(self) -> int:
+        """Number of segments."""
+        return len(self.body)
 
-    @property
-    def pos(self) -> Tuple[int, int]:
-        return self._x, self._y
-
-    @property
-    def render_pos(self) -> Tuple[int, int]:
-        return self._x * self._grid_size, self._y * self._grid_size
-
-    @property
-    def surface(self) -> Surface:
-        """Draw the snake on the surface."""
-        surface = Surface(size=(self._grid_size, self._grid_size))
-        surface.fill(color=self.HEAD_COLOR)
-        return surface
+    def __str__(self) -> str:
+        """Debug information."""
+        return f"Snake: x={self.body[0].x} y={self.body[0].y} B={len(self)}"
 
     def handle_event(self, event: Event) -> None:
-        """Handle events."""
-        if event.type == pygame.KEYDOWN:
-            new_direction = self.DIRECTION_MAP.get(event.key)
-            if new_direction:
-                self._direction = new_direction
+        """Handle Game Events.
 
-    def process_movement(self, tick: float) -> None:
-        """Process the Snake movement.
-
-        :param tick: Current tick in ms.
+        :param event: Pygame Event to be handled.
         """
-        if tick < self._next_movement:
+        if event.type != pygame.KEYDOWN:
             return
 
-        if self._direction == Direction.UP:
-            self._y -= 1
-        elif self._direction == Direction.DOWN:
-            self._y += 1
-        elif self._direction == Direction.RIGHT:
-            self._x += 1
-        elif self._direction == Direction.LEFT:
-            self._x -= 1
+        forbidden = self.FORBIDDEN_MOVEMENT.get(self._state)
+        if event.key == forbidden:
+            return
 
-        self._next_movement += self.SPEED
+        next_state = self.STATE_MAP.get(event.key)
+        if next_state:
+            self._next_state = next_state
+
+    def _process_movement(self) -> None:
+        """Process the Snake movement.
+
+        Create new head, based on the current state.
+        """
+        new_x = self.body[0].x
+        new_y = self.body[0].y
+        if self._state == State.UP:
+            new_y -= 1
+        elif self._state == State.DOWN:
+            new_y += 1
+        elif self._state == State.RIGHT:
+            new_x += 1
+        elif self._state == State.LEFT:
+            new_x -= 1
+
+        new_head = Segment(grid=self._grid, x=new_x, y=new_y)
+        self.body.appendleft(new_head)
+
+    def _process_collision(self) -> None:
+        """Detect Collision between Snake and other game elements."""
+        if self.body[0].x == self._apple.x and self.body[0].y == self._apple.y:
+            self._apple.respawn()
+            return  # Skip the pop, so it'll grow.
+
+        # Remove tail after each movement to preserve its length.
+        self.body.pop()
+
+    def update_state(self) -> None:
+        """Update the Snake state."""
+        self._state = self._next_state
+        if self._state == State.STOPPED:
+            return
+
+        self._process_movement()
+        self._process_collision()
