@@ -1,12 +1,13 @@
 """Define the grid and its generic elements."""
 from functools import cached_property
-from typing import Tuple
+from typing import List, Tuple
 
 import pygame
 from pygame.surface import Surface
 
 from snake.apple import Apple
 from snake.snake import Snake
+from snake.utils import Layer
 
 
 class Grid:
@@ -58,14 +59,12 @@ class Grid:
         return surface
 
     @property
-    def surface(self) -> Surface:
-        """Grid with other game elements rendered."""
-        surface = Surface(size=self.resolution, flags=pygame.SRCALPHA)
+    def layers(self) -> List[Layer]:
+        """Surface layers to be blitted to the screen."""
         layers = [
             (self.base_surface, (0, 0)),
             (self.apple.surface, self.apple.render_pos),
             (self.snake.surface, self.snake.render_pos),
         ]
-        # layers.extend((b.surface, b.render_pos) for b in self.snake.body)
-        surface.blits(layers)
-        return surface
+        layers.extend((b.surface, b.render_pos) for b in self.snake.body)
+        return layers

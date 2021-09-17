@@ -7,6 +7,8 @@ from pygame.color import Color
 from pygame.font import Font
 from pygame.surface import Surface
 
+Layer = Tuple[Surface, Tuple[int, int]]
+
 PINK = Color(0xFF, 0x00, 0xFF)
 
 
@@ -17,12 +19,9 @@ def time_ms() -> float:
 
 def multi_text(
     font: Font, color: Tuple[int, int, int], msgs: Iterable[str]
-) -> Surface:
+) -> Iterable[Layer]:
     """Generate a surface from multiple text messages."""
-    surface_x = max(font.size(msg)[0] for msg in msgs)
-    surface_y = sum(font.size(msg)[1] for msg in msgs)
+    total_y = sum(font.size(msg)[1] for msg in msgs)
     surfaces = [font.render(msg, True, color) for msg in msgs]
-    positions = [(0, y) for y in range(0, surface_y, font.get_height())]
-    surface = Surface(size=(surface_x, surface_y))
-    surface.blits(zip(surfaces, positions))
-    return surface
+    positions = [(0, y) for y in range(0, total_y, font.get_height())]
+    return zip(surfaces, positions)

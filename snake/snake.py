@@ -86,7 +86,7 @@ class Snake(Segment):
         self.body: List[Segment] = []
 
     def __len__(self) -> int:
-        """Snake Length, including the head."""
+        """Snake Length, in number of segments, including the head."""
         return len(self.body) + 1
 
     def __str__(self) -> str:

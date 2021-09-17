@@ -1,13 +1,13 @@
 """Main Application."""
+from typing import List
 
 import pygame
 from pygame.event import Event
 from pygame.font import SysFont, get_default_font
-from pygame.surface import Surface
 from pygame.time import Clock
 
 from snake.grid import Grid
-from snake.utils import multi_text, time_ms
+from snake.utils import Layer, multi_text, time_ms
 
 
 class QuitApplication(Exception):
@@ -82,8 +82,8 @@ class MainApp:
         self._screen = pygame.display.set_mode(size=self._grid.resolution)
 
     @property
-    def _debug_surface(self) -> Surface:
-        """FPS Meter Surface."""
+    def _debug_surface(self) -> List[Layer]:
+        """Debug text layers."""
         return multi_text(
             font=self._fps_font,
             color=self.DEBUG_COLOR,
@@ -103,10 +103,11 @@ class MainApp:
     def _render_graphics(self) -> None:
         """Render the frame and display it in the screen."""
         self._screen.fill(color=self.BG_COLOR)
-        self._screen.blit(self._grid.surface, (0, 0))
+        layers = self._grid.layers
         if self._debug:
-            self._screen.blit(self._debug_surface, (0, 0))
+            layers.extend(self._debug_surface)
 
+        self._screen.blits(layers)
         pygame.display.flip()
         self._render_clock.tick()
 

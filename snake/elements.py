@@ -1,16 +1,18 @@
 """Define base game elements."""
+from abc import ABC, abstractmethod
 from random import randint
 from typing import Optional, Tuple
 
 from pygame.color import Color
 from pygame.rect import Rect
+from pygame.surface import Surface
 
-from snake.utils import PINK
+from snake.utils import PINK, Layer
 
 Grid = "snake.grid.Grid"
 
 
-class GridElement:
+class GridElement(ABC):
     """An element that fits into a Grid unit."""
 
     def __init__(
@@ -30,6 +32,19 @@ class GridElement:
         self.x = x if x is not None else randint(0, self._grid.size[0] - 1)
         self.y = y if y is not None else randint(0, self._grid.size[1] - 1)
         self.color = color if color is not None else PINK
+
+    @property
+    def layer(self) -> Layer:
+        """Rendering Layer."""
+        return self.surface, self.render_pos
+
+    @property
+    @abstractmethod
+    def surface(self) -> Surface:
+        """Element Surface.
+
+        Needs to fit into a grid cell.
+        """
 
     @property
     def rect(self) -> Rect:
