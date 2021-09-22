@@ -2,6 +2,7 @@
 from typing import Iterable
 
 import pygame
+from pygame.color import Color
 from pygame.event import Event
 from pygame.font import SysFont, get_default_font
 from pygame.time import Clock
@@ -30,15 +31,15 @@ class MainApp:
 
     #: Screen/Window parameters.
     CAPTION = "Snake v0.1"
-    BG_COLOR = (0x00, 0x00, 0x00)
+    BG_COLOR = Color(0x00, 0x00, 0x00)
 
     #: FPS meter parameters.
     DEBUG_SIZE = 25
-    DEBUG_COLOR = (0xFF, 0x00, 0x00)
+    DEBUG_COLOR = Color(0xFF, 0x00, 0x00)
 
     #: Grid parameters.
     GRID_ALPHA = 50
-    GRID_COLOR = (0xFF, 0xFF, 0xFF)
+    GRID_COLOR = Color(0xFF, 0xFF, 0xFF)
     GRID_LINE = 1
     GRID_SIZE = (20, 20)
     GRID_STEP = 30

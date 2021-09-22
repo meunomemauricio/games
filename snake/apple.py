@@ -1,21 +1,21 @@
 """Snake's favorite(?) food."""
-import random
 from functools import cached_property
 
 import pygame
+from pygame.color import Color
 from pygame.surface import Surface
 
-from snake.elements import GridElement
+from snake.elements import GridElement, RandomPoint
 
 
 class Apple(GridElement):
     """Apple."""
 
     #: Apple Color
-    COLOR = (0xFF, 0x00, 0x00)
+    COLOR = Color(0xFF, 0x00, 0x00)
 
     def __str__(self) -> str:
-        return f"Apple: x={self.x} y={self.y}"
+        return f"Apple: p={self.p}"
 
     @cached_property
     def surface(self) -> Surface:
@@ -34,6 +34,4 @@ class Apple(GridElement):
 
     def respawn(self) -> None:
         """Shuffle the Apple position."""
-        # FIXME: Needs to avoid spawning under the snake body...
-        self.x = random.randint(0, self._grid.size[0] - 1)
-        self.y = random.randint(0, self._grid.size[1] - 1)
+        self.p = RandomPoint(grid=self._grid)

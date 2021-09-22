@@ -1,6 +1,5 @@
 """Represent the Main Protagonist."""
 from collections import deque
-from enum import Enum
 from functools import cached_property
 from typing import Mapping
 
@@ -8,20 +7,10 @@ import pygame
 from pygame import Surface
 from pygame.event import Event
 
-from snake.apple import Apple
 from snake.elements import GridElement
+from snake.enums import State
 
 Grid = "snake.grid.Grid"
-
-
-class State(str, Enum):
-    """Snake State."""
-
-    STOPPED = "S"
-    UP = "U"
-    DOWN = "D"
-    RIGHT = "R"
-    LEFT = "L"
 
 
 class Segment(GridElement):
@@ -35,6 +24,10 @@ class Segment(GridElement):
         surface = Surface(size=(self._grid.step, self._grid.step))
         surface.fill(color=self.COLOR)
         return surface
+
+
+class KillSnake(Exception):
+    """Raised if the Snake eats itself or go off screen."""
 
 
 class Snake:
@@ -56,14 +49,14 @@ class Snake:
         State.LEFT: pygame.K_RIGHT,
     }
 
-    def __init__(self, grid: Grid, apple: Apple):
+    def __init__(self, grid: Grid):
         """Create new Snake, controlled by the player.
 
         :param grid: Object representing the grid.
         :param apple: Apple object.
         """
         self._grid = grid
-        self._apple = apple
+        self._apple = grid.apple
 
         self._state = State.STOPPED
         self._next_state = State.STOPPED  # State after handling input.
@@ -86,7 +79,19 @@ class Snake:
 
     def __str__(self) -> str:
         """Debug information."""
-        return f"Snake: x={self.body[0].x} y={self.body[0].y} B={len(self)}"
+        head = self.body[0]
+        return f"Snake: p={head.p} | B={len(self)} | S={self._state}"
+
+    def _body_collision(self) -> bool:
+        """Detect collision between the head and the rest of the body."""
+        head = self.body[0].p
+        body_segments = iter(self.body)
+        next(body_segments)  # Skip the Head
+        for segment in body_segments:
+            if head.collision(segment.p):
+                return True
+
+        return False
 
     def handle_event(self, event: Event) -> None:
         """Handle Game Events.
@@ -109,23 +114,21 @@ class Snake:
 
         Create new head, based on the current state.
         """
-        new_x = self.body[0].x
-        new_y = self.body[0].y
-        if self._state == State.UP:
-            new_y -= 1
-        elif self._state == State.DOWN:
-            new_y += 1
-        elif self._state == State.RIGHT:
-            new_x += 1
-        elif self._state == State.LEFT:
-            new_x -= 1
-
-        new_head = Segment(grid=self._grid, x=new_x, y=new_y)
+        new_point = self.body[0].p.clone(state=self._state)
+        new_head = Segment(grid=self._grid, point=new_point)
         self.body.appendleft(new_head)
 
     def _process_collision(self) -> None:
         """Detect Collision between Snake and other game elements."""
-        if self.body[0].x == self._apple.x and self.body[0].y == self._apple.y:
+        head = self.body[0]
+        if self._body_collision():
+            self._next_state = State.DEAD
+            raise KillSnake
+
+        if not head.rect.colliderect(self._grid.rect):
+            raise KillSnake
+
+        if head.p.collision(self._apple.p):
             self._apple.respawn()
             return  # Skip the pop, so it'll grow.
 
@@ -134,9 +137,15 @@ class Snake:
 
     def update_state(self) -> None:
         """Update the Snake state."""
+        if self._state == State.DEAD:
+            return
+
         self._state = self._next_state
         if self._state == State.STOPPED:
             return
 
         self._process_movement()
-        self._process_collision()
+        try:
+            self._process_collision()
+        except KillSnake:
+            self._state = State.DEAD
