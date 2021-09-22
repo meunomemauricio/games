@@ -15,11 +15,6 @@ Point = "snake.elements.Point"
 PINK = Color(0xFF, 0x00, 0xFF)
 
 
-def point_collision(point_a: Point, point_b: Point) -> bool:
-    """Detect collision between two points."""
-    return point_a.x == point_b.x and point_a.y == point_b.y
-
-
 def multi_text(
     font: Font, color: Color, msgs: Iterable[str]
 ) -> Iterable[Layer]:

@@ -35,6 +35,10 @@ class Point:
 
         return Point(x=new_x, y=new_y)
 
+    def collision(self: "Point", other: "Point") -> bool:
+        """Detect collision between two points."""
+        return self.x == other.x and self.y == other.y
+
 
 class RandomPoint(Point):
     """A random point in the grid."""

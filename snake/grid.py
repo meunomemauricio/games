@@ -43,7 +43,7 @@ class Grid:
         self.rect = Rect((0, 0), self.resolution)
 
         self.apple = Apple(grid=self)
-        self.snake = Snake(grid=self, apple=self.apple)
+        self.snake = Snake(grid=self)
 
     @cached_property
     def base_surface(self) -> Surface:

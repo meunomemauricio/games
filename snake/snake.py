@@ -7,10 +7,8 @@ import pygame
 from pygame import Surface
 from pygame.event import Event
 
-from snake.apple import Apple
 from snake.elements import GridElement
 from snake.experimental.enums import State
-from snake.utils import point_collision
 
 Grid = "snake.grid.Grid"
 
@@ -26,6 +24,10 @@ class Segment(GridElement):
         surface = Surface(size=(self._grid.step, self._grid.step))
         surface.fill(color=self.COLOR)
         return surface
+
+
+class KillSnake(Exception):
+    """Raised if the Snake eats itself or go off screen."""
 
 
 class Snake:
@@ -47,14 +49,14 @@ class Snake:
         State.LEFT: pygame.K_RIGHT,
     }
 
-    def __init__(self, grid: Grid, apple: Apple):
+    def __init__(self, grid: Grid):
         """Create new Snake, controlled by the player.
 
         :param grid: Object representing the grid.
         :param apple: Apple object.
         """
         self._grid = grid
-        self._apple = apple
+        self._apple = grid.apple
 
         self._state = State.STOPPED
         self._next_state = State.STOPPED  # State after handling input.
@@ -81,6 +83,17 @@ class Snake:
         return (
             f"Snake: x={head.p.x} y={head.p.y} B={len(self)} S={self._state}"
         )
+
+    def _body_collision(self) -> bool:
+        """Detect collision between the head and the rest of the body."""
+        head = self.body[0].p
+        body_segments = iter(self.body)
+        next(body_segments)  # Skip the Head
+        for segment in body_segments:
+            if head.collision(segment.p):
+                return True
+
+        return False
 
     def handle_event(self, event: Event) -> None:
         """Handle Game Events.
@@ -110,11 +123,14 @@ class Snake:
     def _process_collision(self) -> None:
         """Detect Collision between Snake and other game elements."""
         head = self.body[0]
-        if not head.rect.colliderect(self._grid.rect):
+        if self._body_collision():
             self._next_state = State.DEAD
-            return
+            raise KillSnake
 
-        if point_collision(head.p, self._apple.p):
+        if not head.rect.colliderect(self._grid.rect):
+            raise KillSnake
+
+        if head.p.collision(self._apple.p):
             self._apple.respawn()
             return  # Skip the pop, so it'll grow.
 
@@ -131,4 +147,7 @@ class Snake:
             return
 
         self._process_movement()
-        self._process_collision()
+        try:
+            self._process_collision()
+        except KillSnake:
+            self._state = State.DEAD
