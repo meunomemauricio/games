@@ -15,7 +15,7 @@ class Apple(GridElement):
     COLOR = Color(0xFF, 0x00, 0x00)
 
     def __str__(self) -> str:
-        return f"Apple: x={self.p.x} y={self.p.y}"
+        return f"Apple: p={self.p}"
 
     @cached_property
     def surface(self) -> Surface:

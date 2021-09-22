@@ -8,7 +8,7 @@ from pygame.color import Color
 from pygame.rect import Rect
 from pygame.surface import Surface
 
-from snake.experimental.enums import State
+from snake.enums import State
 from snake.utils import PINK, Layer
 
 Grid = "snake.grid.Grid"
@@ -20,6 +20,9 @@ class Point:
 
     x: int
     y: int
+
+    def __str__(self) -> str:
+        return f"({self.x}, {self.y})"
 
     def clone(self, state: State) -> "Point":
         """Return a new point in a location based on the State."""

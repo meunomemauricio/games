@@ -8,7 +8,7 @@ from pygame import Surface
 from pygame.event import Event
 
 from snake.elements import GridElement
-from snake.experimental.enums import State
+from snake.enums import State
 
 Grid = "snake.grid.Grid"
 
@@ -80,9 +80,7 @@ class Snake:
     def __str__(self) -> str:
         """Debug information."""
         head = self.body[0]
-        return (
-            f"Snake: x={head.p.x} y={head.p.y} B={len(self)} S={self._state}"
-        )
+        return f"Snake: p={head.p} | B={len(self)} | S={self._state}"
 
     def _body_collision(self) -> bool:
         """Detect collision between the head and the rest of the body."""

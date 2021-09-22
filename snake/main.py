@@ -56,8 +56,6 @@ class MainApp:
         """
         self._debug = debug
 
-        self._game_over = False
-
         # Init PyGame
         pygame.init()
         pygame.display.set_caption(self.CAPTION)
