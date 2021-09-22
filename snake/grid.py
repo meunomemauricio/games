@@ -1,13 +1,15 @@
 """Define the grid and its generic elements."""
 from functools import cached_property
-from typing import List, Tuple
+from typing import List
 
 import pygame
+from pygame.color import Color
+from pygame.rect import Rect
 from pygame.surface import Surface
 
 from snake.apple import Apple
 from snake.snake import Snake
-from snake.utils import Layer
+from snake.utils import Layer, SizeTuple
 
 
 class Grid:
@@ -15,22 +17,22 @@ class Grid:
 
     def __init__(
         self,
-        size: Tuple[int, int],
+        size: SizeTuple,
         step: int,
         alpha: int,
-        color: Tuple[int, int, int],
+        color: Color,
         line: int,
     ):
         """Create a new Grid.
 
-        :param step: Step size in px (square cells).
         :param size: Grid Size, the total number of cells in each coordinate.
+        :param step: Step size in px (square cells).
         :param alpha: Grid alpha.
         :param color: Grid color.
         :param line: Line Width in px.
         """
-        self.step = step
         self.size = size
+        self.step = step
 
         self.alpha = alpha
         self.color = color
@@ -38,6 +40,7 @@ class Grid:
 
         self.resolution = size[0] * step, size[1] * step
         self.width, self.height = self.resolution
+        self.rect = Rect((0, 0), self.resolution)
 
         self.apple = Apple(grid=self)
         self.snake = Snake(grid=self, apple=self.apple)

@@ -1,6 +1,5 @@
 """Represent the Main Protagonist."""
 from collections import deque
-from enum import Enum
 from functools import cached_property
 from typing import Mapping
 
@@ -10,18 +9,10 @@ from pygame.event import Event
 
 from snake.apple import Apple
 from snake.elements import GridElement
+from snake.experimental.enums import State
+from snake.utils import point_collision
 
 Grid = "snake.grid.Grid"
-
-
-class State(str, Enum):
-    """Snake State."""
-
-    STOPPED = "S"
-    UP = "U"
-    DOWN = "D"
-    RIGHT = "R"
-    LEFT = "L"
 
 
 class Segment(GridElement):
@@ -86,7 +77,10 @@ class Snake:
 
     def __str__(self) -> str:
         """Debug information."""
-        return f"Snake: x={self.body[0].x} y={self.body[0].y} B={len(self)}"
+        head = self.body[0]
+        return (
+            f"Snake: x={head.p.x} y={head.p.y} B={len(self)} S={self._state}"
+        )
 
     def handle_event(self, event: Event) -> None:
         """Handle Game Events.
@@ -109,23 +103,18 @@ class Snake:
 
         Create new head, based on the current state.
         """
-        new_x = self.body[0].x
-        new_y = self.body[0].y
-        if self._state == State.UP:
-            new_y -= 1
-        elif self._state == State.DOWN:
-            new_y += 1
-        elif self._state == State.RIGHT:
-            new_x += 1
-        elif self._state == State.LEFT:
-            new_x -= 1
-
-        new_head = Segment(grid=self._grid, x=new_x, y=new_y)
+        new_point = self.body[0].p.clone(state=self._state)
+        new_head = Segment(grid=self._grid, point=new_point)
         self.body.appendleft(new_head)
 
     def _process_collision(self) -> None:
         """Detect Collision between Snake and other game elements."""
-        if self.body[0].x == self._apple.x and self.body[0].y == self._apple.y:
+        head = self.body[0]
+        if not head.rect.colliderect(self._grid.rect):
+            self._next_state = State.DEAD
+            return
+
+        if point_collision(head.p, self._apple.p):
             self._apple.respawn()
             return  # Skip the pop, so it'll grow.
 
@@ -134,6 +123,9 @@ class Snake:
 
     def update_state(self) -> None:
         """Update the Snake state."""
+        if self._state == State.DEAD:
+            return
+
         self._state = self._next_state
         if self._state == State.STOPPED:
             return
