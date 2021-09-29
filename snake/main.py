@@ -37,6 +37,11 @@ class MainApp:
     DEBUG_SIZE = 25
     DEBUG_COLOR = Color(0xFF, 0x00, 0x00)
 
+    #: Screen Size
+    SCREEN_WIDTH = 600
+    SCREEN_HEIGHT = 600
+    SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
+
     #: Grid parameters.
     GRID_ALPHA = 50
     GRID_COLOR = Color(0xFF, 0xFF, 0xFF)
@@ -65,6 +70,11 @@ class MainApp:
         self._render_clock = Clock()
         self._running = True
 
+        self._screen = pygame.display.set_mode(
+            size=self.SCREEN_SIZE,
+            flags=pygame.SCALED,
+        )
+
         # Game Elements
         self._fps_font = SysFont(get_default_font(), size=self.DEBUG_SIZE)
         self._grid = Grid(
@@ -76,7 +86,6 @@ class MainApp:
         )
         self._apple = self._grid.apple
         self._snake = self._grid.snake
-        self._screen = pygame.display.set_mode(size=self._grid.resolution)
 
     @property
     def _debug_surface(self) -> Iterable[Layer]:
@@ -86,8 +95,8 @@ class MainApp:
             color=self.DEBUG_COLOR,
             msgs=(
                 f"FPS: {self._render_clock.get_fps()}",
-                str(self._grid.snake),
-                str(self._grid.apple),
+                str(self._snake),
+                str(self._apple),
             ),
         )
 
@@ -100,7 +109,7 @@ class MainApp:
     def _render_graphics(self) -> None:
         """Render the frame and display it in the screen."""
         self._screen.fill(color=self.BG_COLOR)
-        layers = self._grid.layers
+        layers = list(self._grid.layers)
         if self._debug:
             layers.extend(self._debug_surface)
 

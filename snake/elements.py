@@ -1,6 +1,6 @@
-"""Define base game elements."""
-from abc import ABC, abstractmethod
+"""Define base game elements that interact with the grid."""
 from dataclasses import dataclass
+from functools import cached_property
 from random import randint
 from typing import Optional, Tuple
 
@@ -52,39 +52,39 @@ class RandomPoint(Point):
         super().__init__(x=x, y=y)
 
 
-class GridElement(ABC):
+class GridElement:
     """An element that fits into a Grid unit."""
+
+    # Use pink to highlight default case.
+    COLOR: Color = PINK
 
     def __init__(
         self,
         grid: Grid,
         point: Optional[Point] = None,
-        color: Color = None,
     ):
         """Create new Grid Element.
 
-        :param x: Initial horizontal position, in grid coordinates.
-        :param y: Initial vertical position, in grid coordinates.
         :param grid: Grid object.
+        :param point: Element coordinates in the grid.
         """
         self._grid = grid
         self.p: Point = point or RandomPoint(grid=grid)
-
-        # Use pink to highlight default case.
-        self.color = color if color is not None else PINK
 
     @property
     def layer(self) -> Layer:
         """Rendering Layer."""
         return self.surface, self.render_pos
 
-    @property
-    @abstractmethod
+    @cached_property
     def surface(self) -> Surface:
         """Element Surface.
 
         Needs to fit into a grid cell.
         """
+        surface = Surface(size=(self._grid.step, self._grid.step))
+        surface.fill(color=self.COLOR)
+        return surface
 
     @property
     def rect(self) -> Rect:

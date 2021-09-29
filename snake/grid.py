@@ -1,6 +1,7 @@
 """Define the grid and its generic elements."""
 from functools import cached_property
-from typing import List
+from itertools import chain
+from typing import Iterable
 
 import pygame
 from pygame.color import Color
@@ -62,11 +63,10 @@ class Grid:
         return surface
 
     @property
-    def layers(self) -> List[Layer]:
+    def layers(self) -> Iterable[Layer]:
         """Surface layers to be blitted to the screen."""
         layers = [
             (self.base_surface, (0, 0)),
             (self.apple.surface, self.apple.render_pos),
         ]
-        layers.extend((b.surface, b.render_pos) for b in self.snake.body)
-        return layers
+        return chain(layers, self.snake.layers)

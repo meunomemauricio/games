@@ -1,33 +1,26 @@
 """Represent the Main Protagonist."""
 from collections import deque
-from functools import cached_property
-from typing import Mapping
+from typing import Iterable, Mapping
 
 import pygame
-from pygame import Surface
+from pygame.color import Color
 from pygame.event import Event
 
 from snake.elements import GridElement
 from snake.enums import State
+from snake.utils import Layer
 
 Grid = "snake.grid.Grid"
+
+
+class KillSnake(Exception):
+    """Raised if the Snake eats itself or go off screen."""
 
 
 class Segment(GridElement):
     """Snake Body Segment."""
 
-    COLOR = (0x00, 0xBB, 0x00)
-
-    @cached_property
-    def surface(self) -> Surface:
-        """Draw the Segment Surface."""
-        surface = Surface(size=(self._grid.step, self._grid.step))
-        surface.fill(color=self.COLOR)
-        return surface
-
-
-class KillSnake(Exception):
-    """Raised if the Snake eats itself or go off screen."""
+    COLOR = Color(0x00, 0xBB, 0x00)
 
 
 class Snake:
@@ -81,6 +74,10 @@ class Snake:
         """Debug information."""
         head = self.body[0]
         return f"Snake: p={head.p} | B={len(self)} | S={self._state}"
+
+    @property
+    def layers(self) -> Iterable[Layer]:
+        return ((b.surface, b.render_pos) for b in self.body)
 
     def _body_collision(self) -> bool:
         """Detect collision between the head and the rest of the body."""
