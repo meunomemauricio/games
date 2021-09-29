@@ -39,7 +39,7 @@ class MainApp:
 
     #: Screen Size
     SCREEN_WIDTH = 600
-    SCREEN_HEIGHT = 600
+    SCREEN_HEIGHT = 640
     SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
     #: Grid parameters.
@@ -48,6 +48,9 @@ class MainApp:
     GRID_LINE = 1
     GRID_SIZE = (20, 20)
     GRID_STEP = 30
+
+    #: UI parameters.
+    UI_HEIGHT = 40
 
     #: Difference in time between ticks (Basically, the snake speed...)
     TICK_STEP = 250.0  # ms

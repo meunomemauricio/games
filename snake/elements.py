@@ -2,14 +2,14 @@
 from dataclasses import dataclass
 from functools import cached_property
 from random import randint
-from typing import Optional, Tuple
+from typing import Optional
 
 from pygame.color import Color
 from pygame.rect import Rect
 from pygame.surface import Surface
 
 from snake.enums import State
-from snake.utils import PINK, Layer
+from snake.utils import PINK, Layer, Position
 
 Grid = "snake.grid.Grid"
 
@@ -74,7 +74,7 @@ class GridElement:
     @property
     def layer(self) -> Layer:
         """Rendering Layer."""
-        return self.surface, self.render_pos
+        return Layer(self.surface, self.render_pos)
 
     @cached_property
     def surface(self) -> Surface:
@@ -97,6 +97,6 @@ class GridElement:
         )
 
     @property
-    def render_pos(self) -> Tuple[int, int]:
+    def render_pos(self) -> Position:
         """Render position in screen coordinates."""
-        return self.p.x * self._grid.step, self.p.y * self._grid.step
+        return Position(self.p.x * self._grid.step, self.p.y * self._grid.step)

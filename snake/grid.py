@@ -10,7 +10,7 @@ from pygame.surface import Surface
 
 from snake.apple import Apple
 from snake.snake import Snake
-from snake.utils import Layer, SizeTuple
+from snake.utils import Layer, Position, SizeTuple
 
 
 class Grid:
@@ -46,6 +46,8 @@ class Grid:
         self.apple = Apple(grid=self)
         self.snake = Snake(grid=self)
 
+        self._surface = Surface(size=self.resolution)
+
     @cached_property
     def base_surface(self) -> Surface:
         """Base surface representing the Grid."""
@@ -65,8 +67,8 @@ class Grid:
     @property
     def layers(self) -> Iterable[Layer]:
         """Surface layers to be blitted to the screen."""
-        layers = [
-            (self.base_surface, (0, 0)),
-            (self.apple.surface, self.apple.render_pos),
-        ]
+        layers = (
+            Layer(self.base_surface, Position(0, 0)),
+            self.apple.layer,
+        )
         return chain(layers, self.snake.layers)

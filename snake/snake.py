@@ -77,7 +77,7 @@ class Snake:
 
     @property
     def layers(self) -> Iterable[Layer]:
-        return ((b.surface, b.render_pos) for b in self.body)
+        return (b.layer for b in self.body)
 
     def _body_collision(self) -> bool:
         """Detect collision between the head and the rest of the body."""
