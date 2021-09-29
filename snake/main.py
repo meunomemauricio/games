@@ -1,4 +1,5 @@
 """Main Application."""
+from itertools import chain
 from typing import Iterable
 
 import pygame
@@ -112,11 +113,11 @@ class MainApp:
     def _render_graphics(self) -> None:
         """Render the frame and display it in the screen."""
         self._screen.fill(color=self.BG_COLOR)
-        layers = list(self._grid.layers)
+        layer_groups = [self._grid.layers]
         if self._debug:
-            layers.extend(self._debug_surface)
+            layer_groups.append(self._debug_surface)
 
-        self._screen.blits(layers)
+        self._screen.blits(chain(*layer_groups))
         pygame.display.flip()
         self._render_clock.tick()
 
