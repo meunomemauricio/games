@@ -5,6 +5,7 @@ from typing import Iterable
 
 import pygame
 from pygame.color import Color
+from pygame.event import Event
 from pygame.rect import Rect
 from pygame.surface import Surface
 
@@ -23,6 +24,7 @@ class Grid:
         alpha: int,
         color: Color,
         line: int,
+        offset: int,
     ):
         """Create a new Grid.
 
@@ -31,6 +33,7 @@ class Grid:
         :param alpha: Grid alpha.
         :param color: Grid color.
         :param line: Line Width in px.
+        :param offset: Height offset (UI height).
         """
         self.size = size
         self.step = step
@@ -39,9 +42,11 @@ class Grid:
         self.color = color
         self.line = line
 
+        self.offset = offset
+
         self.resolution = size[0] * step, size[1] * step
         self.width, self.height = self.resolution
-        self.rect = Rect((0, 0), self.resolution)
+        self.rect = Rect((0, offset), self.resolution)
 
         self.apple = Apple(grid=self)
         self.snake = Snake(grid=self)
@@ -68,7 +73,18 @@ class Grid:
     def layers(self) -> Iterable[Layer]:
         """Surface layers to be blitted to the screen."""
         layers = (
-            Layer(self.base_surface, Position(0, 0)),
+            Layer(self.base_surface, Position(0, self.offset)),
             self.apple.layer,
         )
         return chain(layers, self.snake.layers)
+
+    def handle_event(self, event: Event) -> None:
+        """Handle Game Events.
+
+        :param event: Pygame Event to be handled.
+        """
+        self.snake.handle_event(event=event)
+
+    def update_state(self) -> None:
+        """Update Grid State."""
+        self.snake.update_state()

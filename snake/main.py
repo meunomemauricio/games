@@ -87,9 +87,8 @@ class MainApp:
             alpha=self.GRID_ALPHA,
             color=self.GRID_COLOR,
             line=self.GRID_LINE,
+            offset=self.UI_HEIGHT,
         )
-        self._apple = self._grid.apple
-        self._snake = self._grid.snake
 
     @property
     def _debug_surface(self) -> Iterable[Layer]:
@@ -99,21 +98,26 @@ class MainApp:
             color=self.DEBUG_COLOR,
             msgs=(
                 f"FPS: {self._render_clock.get_fps()}",
-                str(self._snake),
-                str(self._apple),
+                str(self._grid.snake),
+                str(self._grid.apple),
             ),
         )
+
+    @property
+    def _ui_layers(self) -> Iterable[Layer]:
+        """Interface Layers."""
+        return ()  # TODO:
 
     def _handle_events(self):
         """Handle Game Events."""
         for event in pygame.event.get():
             handle_quit(event=event)
-            self._snake.handle_event(event=event)
+            self._grid.handle_event(event=event)
 
     def _render_graphics(self) -> None:
         """Render the frame and display it in the screen."""
         self._screen.fill(color=self.BG_COLOR)
-        layer_groups = [self._grid.layers]
+        layer_groups = [self._grid.layers, self._ui_layers]
         if self._debug:
             layer_groups.append(self._debug_surface)
 
@@ -124,7 +128,7 @@ class MainApp:
     def _main_loop(self) -> None:
         """Main Application Loop."""
         if time_ms() > self._next_tick:
-            self._snake.update_state()
+            self._grid.update_state()
             self._next_tick += self.TICK_STEP
 
         self._handle_events()

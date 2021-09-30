@@ -99,4 +99,6 @@ class GridElement:
     @property
     def render_pos(self) -> Position:
         """Render position in screen coordinates."""
-        return Position(self.p.x * self._grid.step, self.p.y * self._grid.step)
+        x = self.p.x * self._grid.step
+        y = self.p.y * self._grid.step + self._grid.offset
+        return Position(x, y)
