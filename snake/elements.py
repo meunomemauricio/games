@@ -9,6 +9,7 @@ from pygame.rect import Rect
 from pygame.surface import Surface
 
 from snake.enums import State
+from snake.settings import GRID_SIZE, GRID_STEP, UI_HEIGHT
 from snake.utils import PINK, Layer, Position
 
 Grid = "snake.grid.Grid"
@@ -47,8 +48,8 @@ class RandomPoint(Point):
     """A random point in the grid."""
 
     def __init__(self, grid: Grid):
-        x = randint(0, grid.size[0] - 1)
-        y = randint(0, grid.size[1] - 1)
+        x = randint(0, GRID_SIZE[0] - 1)
+        y = randint(0, GRID_SIZE[1] - 1)
         super().__init__(x=x, y=y)
 
 
@@ -82,7 +83,7 @@ class GridElement:
 
         Needs to fit into a grid cell.
         """
-        surface = Surface(size=(self._grid.step, self._grid.step))
+        surface = Surface(size=(GRID_STEP, GRID_STEP))
         surface.fill(color=self.COLOR)
         return surface
 
@@ -90,15 +91,13 @@ class GridElement:
     def rect(self) -> Rect:
         """Rectangle representing the element."""
         return Rect(
-            self.p.x * self._grid.step,
-            self.p.y * self._grid.step,
-            self._grid.step,
-            self._grid.step,
+            self.p.x * GRID_STEP,
+            self.p.y * GRID_STEP,
+            GRID_STEP,
+            GRID_STEP,
         )
 
     @property
     def render_pos(self) -> Position:
         """Render position in screen coordinates."""
-        x = self.p.x * self._grid.step
-        y = self.p.y * self._grid.step + self._grid.offset
-        return Position(x, y)
+        return Position(self.p.x * GRID_STEP, self.p.y * GRID_STEP + UI_HEIGHT)
