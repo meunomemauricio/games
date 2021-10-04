@@ -46,7 +46,7 @@ class Projectile:
 
     def _terrain_collision(self) -> bool:
         """Detect collision with Terrain."""
-        return self.rect.collidelist(self._blueprint.walls)
+        return self.rect.collidelist(self._blueprint.walls) > -1
 
     @property
     def color(self) -> Tuple[int, int, int]:
