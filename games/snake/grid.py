@@ -8,8 +8,8 @@ from pygame.event import Event
 from pygame.rect import Rect
 from pygame.surface import Surface
 
-from snake.apple import Apple
-from snake.settings import (
+from games.snake.apple import Apple
+from games.snake.settings import (
     GRID_ALPHA,
     GRID_COLOR,
     GRID_LINE,
@@ -17,8 +17,8 @@ from snake.settings import (
     GRID_STEP,
     UI_HEIGHT,
 )
-from snake.snake import Snake
-from snake.utils import Layer, Position
+from games.snake.snake import Snake
+from games.utils import Layer, Position
 
 
 class Grid:

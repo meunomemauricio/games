@@ -6,9 +6,9 @@ import pygame
 from pygame.color import Color
 from pygame.event import Event
 
-from snake.elements import GridElement
-from snake.enums import State
-from snake.utils import Layer
+from games.snake.elements import GridElement
+from games.snake.enums import State
+from games.utils import Layer
 
 Grid = "snake.grid.Grid"
 

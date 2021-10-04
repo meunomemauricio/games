@@ -7,9 +7,9 @@ from pygame.event import Event
 from pygame.math import Vector2
 from pygame.surface import Surface
 
-from snake.experimental.projectile import ProjectileManager
-from snake.experimental.terrain import Blueprint
-from snake.experimental.utils import time_ms
+from games.projectile.projectile import ProjectileManager
+from games.projectile.terrain import Blueprint
+from games.utils import time_ms
 
 
 class AimState(str, Enum):

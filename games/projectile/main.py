@@ -7,10 +7,10 @@ from pygame.font import SysFont, get_default_font
 from pygame.surface import Surface
 from pygame.time import Clock
 
-from snake.experimental.projectile import ProjectileManager
-from snake.experimental.terrain import Blueprint, Terrain
-from snake.experimental.turret import Turret
-from snake.experimental.utils import time_ms
+from games.projectile.projectile import ProjectileManager
+from games.projectile.terrain import Blueprint, Terrain
+from games.projectile.turret import Turret
+from games.utils import time_ms
 
 
 class QuitApplication(Exception):

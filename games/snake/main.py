@@ -7,8 +7,8 @@ from pygame.event import Event
 from pygame.font import SysFont, get_default_font
 from pygame.time import Clock
 
-from snake.grid import Grid
-from snake.settings import (
+from games.snake.grid import Grid
+from games.snake.settings import (
     BG_COLOR,
     CAPTION,
     DEBUG_COLOR,
@@ -16,8 +16,8 @@ from snake.settings import (
     SCREEN_SIZE,
     TICK_STEP,
 )
-from snake.ui import UserInterface
-from snake.utils import Layer, multi_text, time_ms
+from games.snake.ui import UserInterface
+from games.utils import Layer, multi_text, time_ms
 
 
 class QuitApplication(Exception):

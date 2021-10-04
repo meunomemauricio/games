@@ -8,7 +8,7 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.surface import Surface
 
-from snake.experimental.terrain import Blueprint
+from games.projectile.terrain import Blueprint
 
 
 class ProjectileState(Enum):

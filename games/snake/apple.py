@@ -2,7 +2,7 @@
 
 from pygame.color import Color
 
-from snake.elements import GridElement, RandomPoint
+from games.snake.elements import GridElement, RandomPoint
 
 
 class Apple(GridElement):

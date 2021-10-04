@@ -2,8 +2,8 @@
 
 import click
 
-from snake.experimental import MainApp as ExperimentalMainApp
-from snake.main import MainApp
+from games.projectile import MainApp as ProjectileMainApp
+from games.snake.main import MainApp as SnakeMainApp
 
 
 @click.group()
@@ -13,8 +13,8 @@ def cli():
 
 @cli.command()
 @click.option("-d", "--debug/--no-debug", default=False)
-def run(debug: bool):
-    MainApp(debug=debug).run()
+def snake(debug: bool):
+    SnakeMainApp(debug=debug).run()
 
 
 @cli.command()
@@ -22,7 +22,7 @@ def run(debug: bool):
 @click.option("-d", "--debug/--no-debug", default=False)
 @click.option("-f", "--fps/--no-fps", default=False)
 @click.option("-g", "--grid/--no-grid", default=False)
-def experimental(blueprint: str, debug: bool, fps: bool, grid: bool):
-    ExperimentalMainApp(
+def projectile(blueprint: str, debug: bool, fps: bool, grid: bool):
+    ProjectileMainApp(
         bp_name=blueprint, debug=debug, grid=grid, show_fps=fps
     ).run()
