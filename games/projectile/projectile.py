@@ -8,7 +8,7 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.surface import Surface
 
-from games.projectile.settings import TICK_STEP
+from games.projectile.settings import PIXEL_SIZE, TICK_TIME
 from games.projectile.terrain import Blueprint
 
 
@@ -19,10 +19,10 @@ class ProjectileExploded(Exception):
 class Projectile:
     """Projectile."""
 
-    SPEED = 15.0 / TICK_STEP  # Horizontal Speed (m/s).
+    SPEED = 35.0 / TICK_TIME / PIXEL_SIZE  # Horizontal Speed (m/s).
 
     #: Earth's gravity (m/s²), adjusted to logic update rate.
-    GRAVITY = Vector2(0, 9.78 / TICK_STEP)
+    GRAVITY = Vector2(0, 9.78 / TICK_TIME / PIXEL_SIZE)
 
     def __init__(self, blueprint: Blueprint, dir: Vector2, pos: Vector2):
         """Simulates a Projectile from the Turret.

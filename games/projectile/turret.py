@@ -32,7 +32,7 @@ class Turret:
     CHAR = "H"
 
     INITIAL_ANGLE = -45
-    AIM_SENSITIVITY = 3
+    AIM_SENSITIVITY = 0.8
     MIN_FIRE_INTERVAL = 100.0  # ms
 
     CIRCLE_RATE = 1 / 6

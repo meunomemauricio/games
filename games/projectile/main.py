@@ -17,7 +17,7 @@ from games.projectile.settings import (
     GRID_COLOR,
     GRID_WIDTH,
     MAX_FRAMESKIP,
-    TICK_STEP,
+    TICK_TIME,
 )
 from games.projectile.terrain import Blueprint, Terrain
 from games.projectile.turret import Turret
@@ -111,8 +111,8 @@ class MainApp:
 
     def _calc_interpolation(self) -> float:
         """Calculate the Interpolation between game ticks."""
-        next_prediction = time_ms() + TICK_STEP - self._next_tick
-        interp = next_prediction / TICK_STEP
+        next_prediction = time_ms() + TICK_TIME - self._next_tick
+        interp = next_prediction / TICK_TIME
         return max(min(interp, 1.0), 0.0)  # Clip between 0 and 1
 
     def _render_graphics(self, interp: float) -> None:
@@ -143,7 +143,7 @@ class MainApp:
         current_tick = time_ms()
         while current_tick > self._next_tick and loops < MAX_FRAMESKIP:
             self._update_game(tick=current_tick)
-            self._next_tick += TICK_STEP
+            self._next_tick += TICK_TIME
             loops += 1
 
         interpolation = self._calc_interpolation()
