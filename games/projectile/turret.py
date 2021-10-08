@@ -7,6 +7,7 @@ from pygame.math import Vector2
 from pygame.surface import Surface
 
 from games.projectile.projectile import ProjectileManager
+from games.projectile.settings import SPEED_CONSTANT
 from games.projectile.terrain import Blueprint
 from games.utils import time_ms
 
@@ -38,6 +39,8 @@ class Turret:
     CIRCLE_RATE = 1 / 6
     AIM_RATE = 1 / 3.4
     AIM_WIDTH_RATE = 1 / 10.0
+
+    SPEED = 45.0 * SPEED_CONSTANT  # Initial Horizontal Speed (m/s).
 
     def __init__(self, blueprint: Blueprint, pm: ProjectileManager):
         """Turret Entity.
@@ -84,7 +87,8 @@ class Turret:
             return
 
         proj_pos = self.pos + self.aim
-        self._pm.create_projectile(dir=self.aim, pos=proj_pos)
+        velocity = self.SPEED * self.aim
+        self._pm.create_projectile(velocity=velocity, pos=proj_pos)
         self._last_shot = time_ms()
 
     @property

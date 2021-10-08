@@ -8,7 +8,7 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.surface import Surface
 
-from games.projectile.settings import PIXEL_SIZE, TICK_TIME
+from games.projectile.settings import SPEED_CONSTANT
 from games.projectile.terrain import Blueprint
 
 
@@ -19,22 +19,24 @@ class ProjectileExploded(Exception):
 class Projectile:
     """Projectile."""
 
-    SPEED = 35.0 / TICK_TIME / PIXEL_SIZE  # Horizontal Speed (m/s).
-
     #: Earth's gravity (m/s²), adjusted to logic update rate.
-    GRAVITY = Vector2(0, 9.78 / TICK_TIME / PIXEL_SIZE)
+    GRAVITY = Vector2(0, 9.78 * SPEED_CONSTANT)
 
-    def __init__(self, blueprint: Blueprint, dir: Vector2, pos: Vector2):
+    #: Drag Constant
+    # TODO: Calculate for air.
+    DRAG_CONSTANT = -0.5 * SPEED_CONSTANT
+
+    def __init__(self, blueprint: Blueprint, velocity: Vector2, pos: Vector2):
         """Simulates a Projectile from the Turret.
 
         :param blueprint: Terrain Blueprint.
-        :param dir: Initial Direction Vector.
+        :param velocity: Initial Velocity Vector.
         :param pos: Initial Position, in screen coordinates.
         """
         self._blueprint: Blueprint = blueprint
         self._curr_pos: Vector2 = pos
 
-        self._velocity = Vector2(dir) * self.SPEED  # Initial
+        self._velocity = Vector2(velocity)
 
     def _oos_collision(self) -> bool:
         """Out of Screen Collision Detection.
@@ -67,7 +69,8 @@ class Projectile:
 
     def process_logic(self) -> None:
         """Process the Projectile logic and update its status."""
-        self._velocity += self.GRAVITY
+        drag = self.DRAG_CONSTANT * self._velocity
+        self._velocity += self.GRAVITY + drag
         self._curr_pos += self._velocity
 
         if self._oos_collision():
@@ -97,14 +100,14 @@ class ProjectileManager:
         self._blueprint = blueprint
         self._projectiles: Set[Projectile] = set()
 
-    def create_projectile(self, dir: Vector2, pos: Vector2) -> None:
+    def create_projectile(self, velocity: Vector2, pos: Vector2) -> None:
         """Create a Projectile and add it to the list.
 
-        :param dir: Initial Direction, in screen coordinates.
+        :param velocity: Initial Velocity.
         :param pos: Initial Position, in screen coordinates.
         """
         self._projectiles.add(
-            Projectile(blueprint=self._blueprint, dir=dir, pos=pos)
+            Projectile(blueprint=self._blueprint, velocity=velocity, pos=pos)
         )
 
     def process_logic(self) -> None:
