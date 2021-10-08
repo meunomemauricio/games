@@ -73,6 +73,8 @@ class Turret:
             except ValueError:
                 continue
 
+        raise RuntimeError("Turret missing from blueprint.")
+
     def _fire_gun(self, tick: float) -> None:
         """Fire a Projectile from the Turret.
 
