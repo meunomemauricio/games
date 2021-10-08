@@ -1,38 +1,40 @@
 """Define Projectiles and its manager."""
-from enum import Enum
-from typing import Set, Tuple
+from typing import Set
 
 import pygame
 from pygame import draw
+from pygame.color import Color
 from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.surface import Surface
 
+from games.projectile.settings import TICK_STEP
 from games.projectile.terrain import Blueprint
 
 
-class ProjectileState(Enum):
-    """"""
-
-    MOVING = 1
-    DELETED = 2
+class ProjectileExploded(Exception):
+    """Projectile hit something."""
 
 
 class Projectile:
     """Projectile."""
 
+    SPEED = 15.0 / TICK_STEP  # Horizontal Speed (m/s).
+
+    #: Earth's gravity (m/s²), adjusted to logic update rate.
+    GRAVITY = Vector2(0, 9.78 / TICK_STEP)
+
     def __init__(self, blueprint: Blueprint, dir: Vector2, pos: Vector2):
         """Simulates a Projectile from the Turret.
 
         :param blueprint: Terrain Blueprint.
+        :param dir: Initial Direction Vector.
         :param pos: Initial Position, in screen coordinates.
-        :param speed: Initial Speed Vector, in screen coordinates.
         """
         self._blueprint: Blueprint = blueprint
-        self._dir: Vector2 = dir
         self._curr_pos: Vector2 = pos
 
-        self.state = ProjectileState.MOVING
+        self._velocity = Vector2(dir) * self.SPEED  # Initial
 
     def _oos_collision(self) -> bool:
         """Out of Screen Collision Detection.
@@ -49,9 +51,9 @@ class Projectile:
         return self.rect.collidelist(self._blueprint.walls) > -1
 
     @property
-    def color(self) -> Tuple[int, int, int]:
+    def color(self) -> Color:
         """Projectile Color."""
-        return 0xFF, 0xFF, 0x00  # Yellow
+        return Color(0xFF, 0xFF, 0x00)  # Yellow
 
     @property
     def radius(self) -> int:
@@ -59,29 +61,20 @@ class Projectile:
         return 5
 
     @property
-    def speed(self) -> float:
-        """Scalar Speed."""
-        return 0.05
-
-    @property
     def rect(self) -> Rect:
+        # TODO: Is this aligned with the circle?
         return Rect(self._curr_pos, (self.radius * 2, self.radius * 2))
-
-    @property
-    def velocity(self) -> Vector2:
-        """Velocity Vector."""
-        return self.speed * self._dir
 
     def process_logic(self) -> None:
         """Process the Projectile logic and update its status."""
-        self._curr_pos += self.velocity
+        self._velocity += self.GRAVITY
+        self._curr_pos += self._velocity
 
         if self._oos_collision():
-            self.state = ProjectileState.DELETED
-            return
+            raise ProjectileExploded
 
         if self._terrain_collision():
-            self.state = ProjectileState.DELETED
+            raise ProjectileExploded
 
     def get_render_position(self, interp: float) -> Vector2:
         """Calculate the Rendering Position, in screen coordinates.
@@ -89,7 +82,7 @@ class Projectile:
         A linear interpolation is made between the current position and a
         prediction of the next position.
         """
-        next_pos: Vector2 = self._curr_pos + self.velocity
+        next_pos: Vector2 = self._curr_pos + self._velocity
         return self._curr_pos.lerp(next_pos, interp)
 
 
@@ -118,8 +111,9 @@ class ProjectileManager:
         """Process logic and update status."""
         to_be_removed = set()
         for proj in self._projectiles:
-            proj.process_logic()
-            if proj.state == ProjectileState.DELETED:
+            try:
+                proj.process_logic()
+            except ProjectileExploded:
                 to_be_removed.add(proj)
 
         self._projectiles -= to_be_removed

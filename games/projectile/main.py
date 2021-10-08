@@ -8,6 +8,17 @@ from pygame.surface import Surface
 from pygame.time import Clock
 
 from games.projectile.projectile import ProjectileManager
+from games.projectile.settings import (
+    BG_COLOR,
+    CAPTION,
+    FPS_COLOR,
+    FPS_SIZE,
+    GRID_ALPHA,
+    GRID_COLOR,
+    GRID_WIDTH,
+    MAX_FRAMESKIP,
+    TICK_STEP,
+)
 from games.projectile.terrain import Blueprint, Terrain
 from games.projectile.turret import Turret
 from games.utils import time_ms
@@ -19,26 +30,6 @@ class QuitApplication(Exception):
 
 class MainApp:
     """Main Application."""
-
-    #: Screen/Window parameters.
-    CAPTION = "Experimental v0.1"
-    BG_COLOR = (0x00, 0x00, 0x00)
-
-    FPS_SIZE = 25
-    FPS_COLOR = (0xFF, 0x00, 0x00)
-
-    #: Grid Parameters
-    GRID_COLOR = (0xFF, 0xFF, 0xFF)
-    GRID_WIDTH = 1
-    GRID_ALPHA = 50
-
-    #: Difference in time between ticks
-    TICK_STEP = 10.0  # ms
-
-    #: Max number of rendered frames that can be skipped. This is mostly
-    #  relevant on slower machines, in case the time it takes to update the
-    #  game state is greater than `TICK_STEP`.
-    MAX_FRAMESKIP = 10
 
     def __init__(self, bp_name: str, debug: bool, grid: bool, show_fps: bool):
         """Main Application.
@@ -54,7 +45,7 @@ class MainApp:
 
         # Init PyGame
         pygame.init()
-        pygame.display.set_caption(self.CAPTION)
+        pygame.display.set_caption(CAPTION)
 
         # Application Variables
         self._next_tick = time_ms()
@@ -66,7 +57,7 @@ class MainApp:
 
         self._screen = pygame.display.set_mode(size=self._blueprint.rect.size)
 
-        self._fps_font = SysFont(get_default_font(), self.FPS_SIZE)
+        self._fps_font = SysFont(get_default_font(), FPS_SIZE)
 
         self._terrain = Terrain(blueprint=self._blueprint)
 
@@ -77,7 +68,7 @@ class MainApp:
     def _fps_surface(self) -> Surface:
         """FPS Meter Surface."""
         msg = f"FPS: {self._render_clock.get_fps()}"
-        return self._fps_font.render(msg, True, self.FPS_COLOR)
+        return self._fps_font.render(msg, True, FPS_COLOR)
 
     @cached_property
     def _grid_surface(self) -> Surface:
@@ -85,14 +76,14 @@ class MainApp:
         block_size = self._blueprint.block_size
         size = self._blueprint.rect.size
         surface = Surface(size=size, flags=pygame.SRCALPHA)
-        surface.set_alpha(self.GRID_ALPHA)
+        surface.set_alpha(GRID_ALPHA)
         for x in range(0, size[0], int(block_size.x)):
             for y in range(0, size[1], int(block_size.y)):
                 pygame.draw.rect(
                     surface=surface,
-                    color=self.GRID_COLOR,
+                    color=GRID_COLOR,
                     rect=pygame.Rect((x, y), self._blueprint.block_size),
-                    width=self.GRID_WIDTH,
+                    width=GRID_WIDTH,
                 )
 
         return surface
@@ -120,8 +111,8 @@ class MainApp:
 
     def _calc_interpolation(self) -> float:
         """Calculate the Interpolation between game ticks."""
-        next_prediction = time_ms() + self.TICK_STEP - self._next_tick
-        interp = next_prediction / self.TICK_STEP
+        next_prediction = time_ms() + TICK_STEP - self._next_tick
+        interp = next_prediction / TICK_STEP
         return max(min(interp, 1.0), 0.0)  # Clip between 0 and 1
 
     def _render_graphics(self, interp: float) -> None:
@@ -141,7 +132,7 @@ class MainApp:
         if self._show_fps:
             layers.append((self._fps_surface, (0, 0)))
 
-        self._screen.fill(color=self.BG_COLOR)
+        self._screen.fill(color=BG_COLOR)
         self._screen.blits(layers)
         pygame.display.flip()
         self._render_clock.tick()
@@ -150,9 +141,9 @@ class MainApp:
         """Main Application Loop."""
         loops = 0
         current_tick = time_ms()
-        while current_tick > self._next_tick and loops < self.MAX_FRAMESKIP:
+        while current_tick > self._next_tick and loops < MAX_FRAMESKIP:
             self._update_game(tick=current_tick)
-            self._next_tick += self.TICK_STEP
+            self._next_tick += TICK_STEP
             loops += 1
 
         interpolation = self._calc_interpolation()
