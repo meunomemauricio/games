@@ -3,7 +3,6 @@ from enum import Enum
 
 import pygame
 from pygame import draw
-from pygame.event import Event
 from pygame.math import Vector2
 from pygame.surface import Surface
 
@@ -134,34 +133,16 @@ class Turret:
         )
         return surface
 
-    def handle_event(self, event: Event) -> None:
-        """Handle the Hero events.
-
-        :param event: Pygame Event object.
-        """
-        if event.type == pygame.KEYUP:
-            if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
-                self._aim_state = AimState.IDLE
-            if event.key == pygame.K_SPACE:
-                self._gun_state = GunState.IDLE
-
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                self._aim_state = AimState.ROTATING_CW
-            if event.key == pygame.K_LEFT:
-                self._aim_state = AimState.ROTATING_CCW
-            if event.key == pygame.K_SPACE:
-                self._gun_state = GunState.FIRING
-
     def process_logic(self, tick: float) -> None:
         """Process Turret logic.
 
         :param tick: Current tick in ms.
         """
-        if self._aim_state == AimState.ROTATING_CW:
+        pressed = pygame.key.get_pressed()
+        if pressed[pygame.K_RIGHT]:
             self.aim = self.aim.rotate(self.AIM_SENSITIVITY)
-        elif self._aim_state == AimState.ROTATING_CCW:
+        elif pressed[pygame.K_LEFT]:
             self.aim = self.aim.rotate(-self.AIM_SENSITIVITY)
 
-        if self._gun_state == GunState.FIRING:
+        if pressed[pygame.K_SPACE]:
             self._fire_gun(tick=tick)

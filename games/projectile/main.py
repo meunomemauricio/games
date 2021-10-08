@@ -114,7 +114,6 @@ class MainApp:
         """
         for event in pygame.event.get():
             self._handle_quit(event=event)
-            self._hero.handle_event(event=event)
 
         self._hero.process_logic(tick=tick)
         self._proj_mgmt.process_logic()
