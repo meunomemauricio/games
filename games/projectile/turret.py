@@ -3,6 +3,7 @@ from enum import Enum
 
 import pygame
 from pygame import draw
+from pygame.color import Color
 from pygame.math import Vector2
 from pygame.surface import Surface
 
@@ -29,7 +30,7 @@ class GunState(str, Enum):
 
 class Turret:
 
-    COLOR = (0xFF, 0x00, 0x00)
+    COLOR = Color(0x00, 0xFF, 0xFF)
     CHAR = "H"
 
     INITIAL_ANGLE = -45

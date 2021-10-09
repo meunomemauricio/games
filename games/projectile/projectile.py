@@ -20,6 +20,9 @@ class ProjectileExploded(Exception):
 class Projectile:
     """Projectile."""
 
+    #: Projectile Color.
+    COLOR = Color(0xFF, 0x00, 0x00)
+
     #: Earth's gravity (m/s²), adjusted to logic update rate.
     GRAVITY = Vector2(0, 9.78 * SPEED_CONSTANT)
 
@@ -59,7 +62,22 @@ class Projectile:
         if col_index < 0:
             return
 
-        self._handle_reflection(normal=Vector2(0, 1))
+        normal = self._find_normal(pos=self._curr_pos, wall=walls[col_index])
+        self._handle_reflection(normal=normal)
+
+    def _find_normal(self, pos: Vector2, wall: Rect) -> Vector2:
+        """Find the reflection normal based on which wall surface collided."""
+        edges = (
+            wall.topleft,
+            wall.topright,
+            wall.bottomleft,
+            wall.bottomright,
+        )
+        vectors = (Vector2(e) for e in edges)
+        # Sort the vectors by their length to the current position.
+        sorted_vectors = sorted(vectors, key=lambda v: pos.distance_to(v))
+        point_a, point_b = sorted_vectors[:2]
+        return (point_b - point_a).rotate(90)
 
     def _handle_explosion_timer(self):
         """Explode the projectile when its timer is due."""
@@ -70,7 +88,7 @@ class Projectile:
         """Handle the Movement calculations."""
         drag = self.DRAG_CONSTANT * self.velocity
         self.velocity += self.GRAVITY + drag
-        if self.velocity.length() <= 0.01:
+        if self.velocity.length() <= 0.05:
             raise ProjectileExploded
 
         self._curr_pos += self.velocity
@@ -81,19 +99,15 @@ class Projectile:
         self.velocity *= self.COR
 
     @property
-    def color(self) -> Color:
-        """Projectile Color."""
-        return Color(0xFF, 0xFF, 0x00)  # Yellow
-
-    @property
     def radius(self) -> int:
         """Projectile Radius."""
         return 3
 
     @property
     def rect(self) -> Rect:
-        # TODO: Is this aligned with the circle?
-        return Rect(self._curr_pos, (self.radius * 2, self.radius * 2))
+        rect = Rect((0, 0), (self.radius * 2, self.radius * 2))
+        rect.center = self._curr_pos
+        return rect
 
     def process_logic(self) -> None:
         """Process the Projectile logic and update its status."""
@@ -156,7 +170,7 @@ class ProjectileManager:
         for proj in self._projectiles:
             draw.circle(
                 surface=sface,
-                color=proj.color,
+                color=proj.COLOR,
                 center=proj.get_render_position(interp=interp),
                 radius=proj.radius,
             )
