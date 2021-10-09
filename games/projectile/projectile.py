@@ -10,6 +10,7 @@ from pygame.surface import Surface
 
 from games.projectile.settings import SPEED_CONSTANT
 from games.projectile.terrain import Blueprint
+from games.utils import time_ms
 
 
 class ProjectileExploded(Exception):
@@ -26,6 +27,12 @@ class Projectile:
     # TODO: Calculate for air.
     DRAG_CONSTANT = -0.4 * SPEED_CONSTANT
 
+    #: Time (ms) for the
+    EXPLOSION_TIME = 15000
+
+    #: Coeffient of Restitution
+    COR = 0.45
+
     def __init__(self, blueprint: Blueprint, velocity: Vector2, pos: Vector2):
         """Simulates a Projectile from the Turret.
 
@@ -36,24 +43,42 @@ class Projectile:
         self._blueprint: Blueprint = blueprint
         self._curr_pos: Vector2 = pos
 
+        self._explosion_time = time_ms() + self.EXPLOSION_TIME
+
         self.velocity = Vector2(velocity)
 
-    def _handle_oos_collision(self) -> None:
-        """Out of Screen Collision Detection.
+    def _detect_floor_collision(self) -> None:
+        """Detect if there was a collision with the floor."""
+        if self._curr_pos.y >= self._blueprint.rect.height:
+            self._handle_reflection(normal=Vector2(1, 0))
 
-        :return `True` when the current position is not inside the screen.
-        """
-        if not self._blueprint.rect.collidepoint(
-            self._curr_pos.x,
-            self._curr_pos.y,
-        ):
+    def _detect_terrain_collision(self) -> None:
+        """Detect collision with Terrain."""
+        walls = self._blueprint.walls
+        col_index = self.rect.collidelist(walls)
+        if col_index < 0:
+            return
+
+        self._handle_reflection(normal=Vector2(0, 1))
+
+    def _handle_explosion_timer(self):
+        """Explode the projectile when its timer is due."""
+        if time_ms() > self._explosion_time:
             raise ProjectileExploded
 
-    def _handle_terrain_collision(self) -> None:
-        """Detect collision with Terrain."""
-        aaaa = self.rect.collidelist(self._blueprint.walls) > -1
-        if aaaa:
-            self.velocity.reflect_ip(Vector2(0, 1))
+    def _handle_movement(self):
+        """Handle the Movement calculations."""
+        drag = self.DRAG_CONSTANT * self.velocity
+        self.velocity += self.GRAVITY + drag
+        if self.velocity.length() <= 0.01:
+            raise ProjectileExploded
+
+        self._curr_pos += self.velocity
+
+    def _handle_reflection(self, normal: Vector2):
+        """Reflect the projectile against a normal vector."""
+        self.velocity.reflect_ip(normal)
+        self.velocity *= self.COR
 
     @property
     def color(self) -> Color:
@@ -72,12 +97,10 @@ class Projectile:
 
     def process_logic(self) -> None:
         """Process the Projectile logic and update its status."""
-        drag = self.DRAG_CONSTANT * self.velocity
-        self.velocity += self.GRAVITY + drag
-        self._curr_pos += self.velocity
-
-        self._handle_oos_collision()
-        self._handle_terrain_collision()
+        self._handle_explosion_timer()
+        self._handle_movement()
+        self._detect_floor_collision()
+        self._detect_terrain_collision()
 
     def get_render_position(self, interp: float) -> Vector2:
         """Calculate the Rendering Position, in screen coordinates.
@@ -112,7 +135,7 @@ class ProjectileManager:
             blueprint=self._blueprint, velocity=velocity, pos=pos
         )
         self._projectiles.add(projectile)
-        self._latest = projectile
+        self.latest = projectile
 
     def process_logic(self) -> None:
         """Process logic and update status."""
@@ -122,6 +145,8 @@ class ProjectileManager:
                 proj.process_logic()
             except ProjectileExploded:
                 to_be_removed.add(proj)
+                if self.latest == proj:
+                    self.latest = None
 
         self._projectiles -= to_be_removed
 

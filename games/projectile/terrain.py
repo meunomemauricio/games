@@ -78,8 +78,8 @@ class Blueprint:
         return Rect(
             0,
             0,
-            self.width * self._data["block"]["width"],
-            self.height * self._data["block"]["height"],
+            self.width * self.block_size.x,
+            self.height * self.block_size.y,
         )
 
     @property
