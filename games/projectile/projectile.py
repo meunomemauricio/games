@@ -34,7 +34,7 @@ class Projectile:
     EXPLOSION_TIME = 15000
 
     #: Coeffient of Restitution
-    COR = 0.45
+    COR = 0.35
 
     def __init__(self, blueprint: Blueprint, velocity: Vector2, pos: Vector2):
         """Simulates a Projectile from the Turret.
@@ -50,15 +50,15 @@ class Projectile:
 
         self.velocity = Vector2(velocity)
 
-    def _detect_floor_collision(self) -> None:
+    def _detect_floor_collision(self, future_pos: Vector2) -> None:
         """Detect if there was a collision with the floor."""
-        if self._curr_pos.y >= self._blueprint.rect.height:
+        if future_pos.y >= self._blueprint.rect.height:
             self._handle_reflection(normal=Vector2(1, 0))
 
-    def _detect_terrain_collision(self) -> None:
+    def _detect_terrain_collision(self, future_pos: Vector2) -> None:
         """Detect collision with Terrain."""
         walls = self._blueprint.walls
-        col_index = self.rect.collidelist(walls)
+        col_index = self.get_rect(future_pos).collidelist(walls)
         if col_index < 0:
             return
 
@@ -94,6 +94,11 @@ class Projectile:
         if self.velocity.length() <= 0.05:
             raise ProjectileExploded
 
+        future_pos = self._curr_pos + self.velocity
+        self._detect_floor_collision(future_pos=future_pos)
+        self._detect_terrain_collision(future_pos=future_pos)
+
+        # Don't reuse `future_pos`, in case the velocity has changed.
         self._curr_pos += self.velocity
 
     def _handle_reflection(self, normal: Vector2):
@@ -106,18 +111,15 @@ class Projectile:
         """Projectile Radius."""
         return 3
 
-    @property
-    def rect(self) -> Rect:
+    def get_rect(self, pos: Vector2) -> Rect:
         rect = Rect((0, 0), (self.radius * 2, self.radius * 2))
-        rect.center = self._curr_pos
+        rect.center = pos
         return rect
 
     def process_logic(self) -> None:
         """Process the Projectile logic and update its status."""
         self._handle_explosion_timer()
         self._handle_movement()
-        self._detect_floor_collision()
-        self._detect_terrain_collision()
 
     def get_render_position(self, interp: float) -> Vector2:
         """Calculate the Rendering Position, in screen coordinates.
