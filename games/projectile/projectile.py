@@ -24,7 +24,7 @@ class Projectile:
 
     #: Drag Constant
     # TODO: Calculate for air.
-    DRAG_CONSTANT = -0.5 * SPEED_CONSTANT
+    DRAG_CONSTANT = -0.4 * SPEED_CONSTANT
 
     def __init__(self, blueprint: Blueprint, velocity: Vector2, pos: Vector2):
         """Simulates a Projectile from the Turret.

@@ -1,5 +1,6 @@
 """Define the Main Application class."""
 from functools import cached_property
+from typing import Iterable
 
 import pygame
 from pygame.event import Event
@@ -17,11 +18,13 @@ from games.projectile.settings import (
     GRID_COLOR,
     GRID_WIDTH,
     MAX_FRAMESKIP,
+    PIXEL_SIZE,
     TICK_TIME,
 )
 from games.projectile.terrain import Blueprint, Terrain
 from games.projectile.turret import Turret
-from games.utils import time_ms
+from games.snake.settings import DEBUG_COLOR
+from games.utils import Layer, multi_text, time_ms
 
 
 class QuitApplication(Exception):
@@ -41,7 +44,7 @@ class MainApp:
         """
         self._debug = debug
         self._grid = grid
-        self._show_fps = show_fps
+        self._show_fps = show_fps and not debug
 
         # Init PyGame
         pygame.init()
@@ -63,6 +66,20 @@ class MainApp:
 
         self._proj_mgmt = ProjectileManager(blueprint=self._blueprint)
         self._hero = Turret(blueprint=self._blueprint, pm=self._proj_mgmt)
+
+    @property
+    def _debug_surface(self) -> Iterable[Layer]:
+        """Debug Message Layers."""
+        return multi_text(
+            font=self._fps_font,
+            color=DEBUG_COLOR,
+            msgs=(
+                f"FPS: {self._render_clock.get_fps()}",
+                f"Block Size (m): {self._blueprint.block_size * PIXEL_SIZE}",
+                f"Width (m): {self._blueprint.width * PIXEL_SIZE}",
+                f"Height (m): {self._blueprint.height * PIXEL_SIZE}",
+            ),
+        )
 
     @property
     def _fps_surface(self) -> Surface:
@@ -128,6 +145,9 @@ class MainApp:
         ]
         if self._grid:
             layers.append((self._grid_surface, (0, 0)))
+
+        if self._debug:
+            layers.extend(self._debug_surface)
 
         if self._show_fps:
             layers.append((self._fps_surface, (0, 0)))

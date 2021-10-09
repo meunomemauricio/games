@@ -19,7 +19,7 @@ TICK_TIME = 10.0  # ms
 MAX_FRAMESKIP = 10
 
 #: The size of a pixel in meters.
-PIXEL_SIZE = 10.0
+PIXEL_SIZE = 50.0
 
 #: A constant to multiply modular speed constants.
 SPEED_CONSTANT = 1 / TICK_TIME / PIXEL_SIZE

@@ -40,7 +40,7 @@ class Turret:
     AIM_RATE = 1 / 3.4
     AIM_WIDTH_RATE = 1 / 10.0
 
-    SPEED = 45.0 * SPEED_CONSTANT  # Initial Horizontal Speed (m/s).
+    SPEED = 155.0 * SPEED_CONSTANT  # Initial Horizontal Speed (m/s).
 
     def __init__(self, blueprint: Blueprint, pm: ProjectileManager):
         """Turret Entity.

@@ -67,7 +67,7 @@ class MainApp:
         self._ui = UserInterface(grid=self._grid)
 
     @property
-    def _debug_surface(self) -> Iterable[Layer]:
+    def _debug_layers(self) -> Iterable[Layer]:
         """Debug text layers."""
         return multi_text(
             font=self._fps_font,
@@ -87,11 +87,11 @@ class MainApp:
 
     def _render_graphics(self) -> None:
         """Render the frame and display it in the screen."""
-        self._screen.fill(color=BG_COLOR)
         layer_groups = [self._grid.layers, self._ui.layers]
         if self._debug:
-            layer_groups.append(self._debug_surface)
+            layer_groups.append(self._debug_layers)
 
+        self._screen.fill(color=BG_COLOR)
         self._screen.blits(chain(*layer_groups))
         pygame.display.flip()
         self._render_clock.tick()
