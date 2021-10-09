@@ -73,10 +73,13 @@ class Projectile:
             wall.bottomleft,
             wall.bottomright,
         )
-        vectors = (Vector2(e) for e in edges)
+        points = (Vector2(e) for e in edges)
         # Sort the vectors by their length to the current position.
-        sorted_vectors = sorted(vectors, key=lambda v: pos.distance_to(v))
-        point_a, point_b = sorted_vectors[:2]
+        sorted_points = sorted(points, key=lambda v: pos.distance_to(v))
+        # Get the 2 closest points
+        point_a, point_b = sorted_points[:2]
+        # Make a vector between them. This is the surface that collided.
+        # Rotate 90° to get the normal.
         return (point_b - point_a).rotate(90)
 
     def _handle_explosion_timer(self):
