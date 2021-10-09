@@ -41,8 +41,6 @@ class Turret:
     AIM_RATE = 1 / 3.4
     AIM_WIDTH_RATE = 1 / 10.0
 
-    SPEED = 155.0 * SPEED_CONSTANT  # Initial Horizontal Speed (m/s).
-
     def __init__(self, blueprint: Blueprint, pm: ProjectileManager):
         """Turret Entity.
 
@@ -69,6 +67,9 @@ class Turret:
             (self._bs.length() * self.AIM_RATE, self.INITIAL_ANGLE)
         )
 
+        #: Initial Projectile Speed (m/s).
+        self.speed = 155.0 * SPEED_CONSTANT
+
     def _find_in_blueprint(self) -> Vector2:
         """Determine the initial position using the Blueprint."""
         for i, row in enumerate(self._bp.terrain):
@@ -88,7 +89,7 @@ class Turret:
             return
 
         proj_pos = self.pos + self.aim
-        velocity = self.SPEED * self.aim
+        velocity = self.speed * self.aim
         self._pm.create_projectile(velocity=velocity, pos=proj_pos)
         self._last_shot = time_ms()
 
@@ -146,6 +147,12 @@ class Turret:
         :param tick: Current tick in ms.
         """
         pressed = pygame.key.get_pressed()
+
+        if pressed[pygame.K_UP]:
+            self.speed += SPEED_CONSTANT
+        elif pressed[pygame.K_DOWN]:
+            self.speed -= SPEED_CONSTANT
+
         if pressed[pygame.K_RIGHT]:
             self.aim = self.aim.rotate(self.AIM_SENSITIVITY)
         elif pressed[pygame.K_LEFT]:

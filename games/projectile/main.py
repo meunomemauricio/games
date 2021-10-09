@@ -19,6 +19,7 @@ from games.projectile.settings import (
     GRID_WIDTH,
     MAX_FRAMESKIP,
     PIXEL_SIZE,
+    SPEED_CONSTANT,
     TICK_TIME,
 )
 from games.projectile.terrain import Blueprint, Terrain
@@ -73,8 +74,9 @@ class MainApp:
         msgs = [
             f"FPS: {self._render_clock.get_fps()}",
             f"Block Size (m): {self._blueprint.block_size * PIXEL_SIZE}",
-            f"Width (m): {self._blueprint.width * PIXEL_SIZE}",
-            f"Height (m): {self._blueprint.height * PIXEL_SIZE}",
+            f"Width: {self._blueprint.width * PIXEL_SIZE} m",
+            f"Height: {self._blueprint.height * PIXEL_SIZE} m",
+            f"Initial Speed: {self._hero.speed / SPEED_CONSTANT} m/s",
         ]
         latest = self._proj_mgmt.latest
         if latest:
