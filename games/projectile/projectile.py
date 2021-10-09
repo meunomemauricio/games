@@ -33,7 +33,7 @@ class Projectile:
     #: Time (ms) for the
     EXPLOSION_TIME = 15000
 
-    #: Coeffient of Restitution
+    #: Coefficient of Restitution
     COR = 0.35
 
     def __init__(self, blueprint: Blueprint, velocity: Vector2, pos: Vector2):
