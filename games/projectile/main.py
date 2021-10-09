@@ -70,16 +70,17 @@ class MainApp:
     @property
     def _debug_surface(self) -> Iterable[Layer]:
         """Debug Message Layers."""
-        return multi_text(
-            font=self._fps_font,
-            color=DEBUG_COLOR,
-            msgs=(
-                f"FPS: {self._render_clock.get_fps()}",
-                f"Block Size (m): {self._blueprint.block_size * PIXEL_SIZE}",
-                f"Width (m): {self._blueprint.width * PIXEL_SIZE}",
-                f"Height (m): {self._blueprint.height * PIXEL_SIZE}",
-            ),
-        )
+        msgs = [
+            f"FPS: {self._render_clock.get_fps()}",
+            f"Block Size (m): {self._blueprint.block_size * PIXEL_SIZE}",
+            f"Width (m): {self._blueprint.width * PIXEL_SIZE}",
+            f"Height (m): {self._blueprint.height * PIXEL_SIZE}",
+        ]
+        latest = self._proj_mgmt.latest
+        if latest:
+            msgs.append(f"Proj. Velocity: {latest.velocity}")
+
+        return multi_text(font=self._fps_font, color=DEBUG_COLOR, msgs=msgs)
 
     @property
     def _fps_surface(self) -> Surface:

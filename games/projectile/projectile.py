@@ -1,5 +1,5 @@
 """Define Projectiles and its manager."""
-from typing import Set
+from typing import Optional, Set
 
 import pygame
 from pygame import draw
@@ -36,21 +36,24 @@ class Projectile:
         self._blueprint: Blueprint = blueprint
         self._curr_pos: Vector2 = pos
 
-        self._velocity = Vector2(velocity)
+        self.velocity = Vector2(velocity)
 
-    def _oos_collision(self) -> bool:
+    def _handle_oos_collision(self) -> None:
         """Out of Screen Collision Detection.
 
         :return `True` when the current position is not inside the screen.
         """
-        return not self._blueprint.rect.collidepoint(
+        if not self._blueprint.rect.collidepoint(
             self._curr_pos.x,
             self._curr_pos.y,
-        )
+        ):
+            raise ProjectileExploded
 
-    def _terrain_collision(self) -> bool:
+    def _handle_terrain_collision(self) -> None:
         """Detect collision with Terrain."""
-        return self.rect.collidelist(self._blueprint.walls) > -1
+        aaaa = self.rect.collidelist(self._blueprint.walls) > -1
+        if aaaa:
+            self.velocity.reflect_ip(Vector2(0, 1))
 
     @property
     def color(self) -> Color:
@@ -60,7 +63,7 @@ class Projectile:
     @property
     def radius(self) -> int:
         """Projectile Radius."""
-        return 5
+        return 3
 
     @property
     def rect(self) -> Rect:
@@ -69,15 +72,12 @@ class Projectile:
 
     def process_logic(self) -> None:
         """Process the Projectile logic and update its status."""
-        drag = self.DRAG_CONSTANT * self._velocity
-        self._velocity += self.GRAVITY + drag
-        self._curr_pos += self._velocity
+        drag = self.DRAG_CONSTANT * self.velocity
+        self.velocity += self.GRAVITY + drag
+        self._curr_pos += self.velocity
 
-        if self._oos_collision():
-            raise ProjectileExploded
-
-        if self._terrain_collision():
-            raise ProjectileExploded
+        self._handle_oos_collision()
+        self._handle_terrain_collision()
 
     def get_render_position(self, interp: float) -> Vector2:
         """Calculate the Rendering Position, in screen coordinates.
@@ -85,7 +85,7 @@ class Projectile:
         A linear interpolation is made between the current position and a
         prediction of the next position.
         """
-        next_pos: Vector2 = self._curr_pos + self._velocity
+        next_pos: Vector2 = self._curr_pos + self.velocity
         return self._curr_pos.lerp(next_pos, interp)
 
 
@@ -100,15 +100,19 @@ class ProjectileManager:
         self._blueprint = blueprint
         self._projectiles: Set[Projectile] = set()
 
+        self.latest: Optional[Projectile] = None
+
     def create_projectile(self, velocity: Vector2, pos: Vector2) -> None:
         """Create a Projectile and add it to the list.
 
         :param velocity: Initial Velocity.
         :param pos: Initial Position, in screen coordinates.
         """
-        self._projectiles.add(
-            Projectile(blueprint=self._blueprint, velocity=velocity, pos=pos)
+        projectile = Projectile(
+            blueprint=self._blueprint, velocity=velocity, pos=pos
         )
+        self._projectiles.add(projectile)
+        self._latest = projectile
 
     def process_logic(self) -> None:
         """Process logic and update status."""
