@@ -5,8 +5,9 @@ from typing import Iterable
 import pygame
 from pygame.event import Event
 from pygame.font import SysFont, get_default_font
-from pygame.time import Clock
+from pygame.surface import Surface
 
+from games.application import GameApplication
 from games.snake.grid import Grid
 from games.snake.settings import (
     BG_COLOR,
@@ -17,26 +18,14 @@ from games.snake.settings import (
     TICK_STEP,
 )
 from games.snake.ui import UserInterface
-from games.utils import Layer, multi_text, time_ms
+from games.utils import Layer, multi_text
 
 
-class QuitApplication(Exception):
-    """Quit the application if raised inside the Main Loop."""
-
-
-def handle_quit(event: Event) -> None:
-    """Handle the Quit events.
-
-    :param event: PyGame Event object.
-    """
-    if event.type == pygame.QUIT:
-        raise QuitApplication
-    elif event.type == pygame.KEYUP and event.key == pygame.K_q:
-        raise QuitApplication
-
-
-class MainApp:
+class MainApp(GameApplication):
     """Main application."""
+
+    CAPTION = CAPTION
+    TICK_STEP = TICK_STEP
 
     def __init__(self, debug: bool):
         """Main Application.
@@ -45,21 +34,9 @@ class MainApp:
         :param grid: If `True`, draw a grid on top of the screen.
         :param debug: If `True`, render the debug info on screen.
         """
+        super().__init__()
+
         self._debug = debug
-
-        # Init PyGame
-        pygame.init()
-        pygame.display.set_caption(CAPTION)
-
-        # Application Variables
-        self._next_tick = time_ms()
-        self._render_clock = Clock()
-        self._running = True
-
-        self._screen = pygame.display.set_mode(
-            size=SCREEN_SIZE,
-            flags=pygame.SCALED,
-        )
 
         # Game Elements
         self._fps_font = SysFont(get_default_font(), size=DEBUG_SIZE)
@@ -79,13 +56,20 @@ class MainApp:
             ),
         )
 
-    def _handle_events(self):
-        """Handle Game Events."""
-        for event in pygame.event.get():
-            handle_quit(event=event)
-            self._grid.handle_event(event=event)
+    def _create_screen(self) -> Surface:
+        return pygame.display.set_mode(
+            size=SCREEN_SIZE,
+            flags=pygame.SCALED,
+        )
 
-    def _render_graphics(self) -> None:
+    def _handle_events(self, event: Event) -> None:
+        """Handle Game Events."""
+        self._grid.handle_event(event=event)
+
+    def _handle_updates(self, tick: float) -> None:
+        self._grid.update_state()
+
+    def _draw_graphics(self, interp: float) -> None:
         """Render the frame and display it in the screen."""
         layer_groups = [self._grid.layers, self._ui.layers]
         if self._debug:
@@ -95,20 +79,3 @@ class MainApp:
         self._screen.blits(chain(*layer_groups))
         pygame.display.flip()
         self._render_clock.tick()
-
-    def _main_loop(self) -> None:
-        """Main Application Loop."""
-        if time_ms() > self._next_tick:
-            self._grid.update_state()
-            self._next_tick += TICK_STEP
-
-        self._handle_events()
-        self._render_graphics()
-
-    def run(self) -> None:
-        """Run the application."""
-        while True:
-            try:
-                self._main_loop()
-            except QuitApplication:
-                break

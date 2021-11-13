@@ -6,34 +6,31 @@ import pygame
 from pygame.event import Event
 from pygame.font import SysFont, get_default_font
 from pygame.surface import Surface
-from pygame.time import Clock
 
+from games.application import GameApplication
 from games.projectile.projectile import ProjectileManager
 from games.projectile.settings import (
     BG_COLOR,
-    CAPTION,
     FPS_COLOR,
     FPS_SIZE,
     GRID_ALPHA,
     GRID_COLOR,
     GRID_WIDTH,
-    MAX_FRAMESKIP,
     PIXEL_SIZE,
     SPEED_CONSTANT,
-    TICK_TIME,
+    TICK_STEP,
 )
 from games.projectile.terrain import Blueprint, Terrain
 from games.projectile.turret import Turret
 from games.snake.settings import DEBUG_COLOR
-from games.utils import Layer, multi_text, time_ms
+from games.utils import Layer, multi_text
 
 
-class QuitApplication(Exception):
-    """Quit the application if raised inside the Main Loop."""
-
-
-class MainApp:
+class MainApp(GameApplication):
     """Main Application."""
+
+    CAPTION = "Projectile v0.1"
+    TICK_STEP = TICK_STEP
 
     def __init__(self, bp_name: str, debug: bool, grid: bool, show_fps: bool):
         """Main Application.
@@ -43,23 +40,14 @@ class MainApp:
         :param grid: If `True`, draw a grid on top of the screen.
         :param show_fps: If `True`, render the FPS on screen.
         """
+        super().__init__()
+
         self._debug = debug
         self._grid = grid
         self._show_fps = show_fps and not debug
 
-        # Init PyGame
-        pygame.init()
-        pygame.display.set_caption(CAPTION)
-
-        # Application Variables
-        self._next_tick = time_ms()
-        self._render_clock = Clock()
-        self._running = True
-
         # Game Elements
         self._blueprint = Blueprint(name=bp_name)
-
-        self._screen = pygame.display.set_mode(size=self._blueprint.rect.size)
 
         self._fps_font = SysFont(get_default_font(), FPS_SIZE)
 
@@ -108,39 +96,20 @@ class MainApp:
 
         return surface
 
-    def _handle_quit(self, event: Event) -> None:
-        """Handle the Quit events.
+    def _create_screen(self) -> Surface:
+        """Create screen surface based on the Blueprint."""
+        return pygame.display.set_mode(size=self._blueprint.rect.size)
 
-        :param event: PyGame Event object.
-        """
-        if event.type == pygame.QUIT:
-            raise QuitApplication
-        elif event.type == pygame.KEYUP and event.key == pygame.K_q:
-            raise QuitApplication
+    def _handle_events(self, event: Event) -> None:
+        """No custom events to handle."""
 
-    def _update_game(self, tick: float) -> None:
-        """Update Game State.
-
-        :param tick: Current tick in ms.
-        """
-        for event in pygame.event.get():
-            self._handle_quit(event=event)
-
+    def _handle_updates(self, tick: float) -> None:
+        """Handle updates to the game state."""
         self._hero.process_logic(tick=tick)
         self._proj_mgmt.process_logic()
 
-    def _calc_interpolation(self) -> float:
-        """Calculate the Interpolation between game ticks."""
-        next_prediction = time_ms() + TICK_TIME - self._next_tick
-        interp = next_prediction / TICK_TIME
-        return max(min(interp, 1.0), 0.0)  # Clip between 0 and 1
-
-    def _render_graphics(self, interp: float) -> None:
-        """Render the frame and display it in the screen.
-
-        :param interp: To allow smoother movement on screen, interpolation is
-          used when rendering the screen between game state updates,
-        """
+    def _draw_graphics(self, interp: float) -> None:
+        """Draw contents of the frame to the Screen."""
         layers = [
             (self._terrain.surface, (0, 0)),
             (self._proj_mgmt.build_surface(interp), (0, 0)),
@@ -157,25 +126,3 @@ class MainApp:
 
         self._screen.fill(color=BG_COLOR)
         self._screen.blits(layers)
-        pygame.display.flip()
-        self._render_clock.tick()
-
-    def _main_loop(self) -> None:
-        """Main Application Loop."""
-        loops = 0
-        current_tick = time_ms()
-        while current_tick > self._next_tick and loops < MAX_FRAMESKIP:
-            self._update_game(tick=current_tick)
-            self._next_tick += TICK_TIME
-            loops += 1
-
-        interpolation = self._calc_interpolation()
-        self._render_graphics(interp=interpolation)
-
-    def run(self) -> None:
-        """Run the application."""
-        while True:
-            try:
-                self._main_loop()
-            except QuitApplication:
-                break
