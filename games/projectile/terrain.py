@@ -9,7 +9,7 @@ from pygame.math import Vector2
 from pygame.rect import Rect
 from pygame.surface import Surface
 
-from snake.utils import PINK
+from games.utils import PINK
 
 BLUEPRINT_DIR = Path(__file__).parent / "blueprints"
 
@@ -78,8 +78,8 @@ class Blueprint:
         return Rect(
             0,
             0,
-            self.width * self._data["block"]["width"],
-            self.height * self._data["block"]["height"],
+            self.width * self.block_size.x,
+            self.height * self.block_size.y,
         )
 
     @property

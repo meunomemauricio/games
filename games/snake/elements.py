@@ -8,9 +8,9 @@ from pygame.color import Color
 from pygame.rect import Rect
 from pygame.surface import Surface
 
-from snake.enums import State
-from snake.settings import GRID_SIZE, GRID_STEP, UI_HEIGHT
-from snake.utils import PINK, Layer, Position
+from games.snake.enums import State
+from games.snake.settings import GRID_SIZE, GRID_STEP, UI_HEIGHT
+from games.utils import PINK, Layer, Position
 
 Grid = "snake.grid.Grid"
 

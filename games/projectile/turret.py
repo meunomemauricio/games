@@ -3,13 +3,14 @@ from enum import Enum
 
 import pygame
 from pygame import draw
-from pygame.event import Event
+from pygame.color import Color
 from pygame.math import Vector2
 from pygame.surface import Surface
 
-from snake.experimental.projectile import ProjectileManager
-from snake.experimental.terrain import Blueprint
-from snake.experimental.utils import time_ms
+from games.projectile.projectile import ProjectileManager
+from games.projectile.settings import SPEED_CONSTANT
+from games.projectile.terrain import Blueprint
+from games.utils import time_ms
 
 
 class AimState(str, Enum):
@@ -29,11 +30,11 @@ class GunState(str, Enum):
 
 class Turret:
 
-    COLOR = (0xFF, 0x00, 0x00)
+    COLOR = Color(0x00, 0xFF, 0xFF)
     CHAR = "H"
 
     INITIAL_ANGLE = -45
-    AIM_SENSITIVITY = 3
+    AIM_SENSITIVITY = 0.8
     MIN_FIRE_INTERVAL = 100.0  # ms
 
     CIRCLE_RATE = 1 / 6
@@ -66,6 +67,9 @@ class Turret:
             (self._bs.length() * self.AIM_RATE, self.INITIAL_ANGLE)
         )
 
+        #: Initial Projectile Speed (m/s).
+        self.speed = 155.0 * SPEED_CONSTANT
+
     def _find_in_blueprint(self) -> Vector2:
         """Determine the initial position using the Blueprint."""
         for i, row in enumerate(self._bp.terrain):
@@ -73,6 +77,8 @@ class Turret:
                 return Vector2(x=row.index(self.CHAR), y=i)
             except ValueError:
                 continue
+
+        raise RuntimeError("Turret missing from blueprint.")
 
     def _fire_gun(self, tick: float) -> None:
         """Fire a Projectile from the Turret.
@@ -83,7 +89,8 @@ class Turret:
             return
 
         proj_pos = self.pos + self.aim
-        self._pm.create_projectile(dir=self.aim, pos=proj_pos)
+        velocity = self.speed * self.aim
+        self._pm.create_projectile(velocity=velocity, pos=proj_pos)
         self._last_shot = time_ms()
 
     @property
@@ -134,34 +141,22 @@ class Turret:
         )
         return surface
 
-    def handle_event(self, event: Event) -> None:
-        """Handle the Hero events.
-
-        :param event: Pygame Event object.
-        """
-        if event.type == pygame.KEYUP:
-            if event.key in (pygame.K_LEFT, pygame.K_RIGHT):
-                self._aim_state = AimState.IDLE
-            if event.key == pygame.K_SPACE:
-                self._gun_state = GunState.IDLE
-
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                self._aim_state = AimState.ROTATING_CW
-            if event.key == pygame.K_LEFT:
-                self._aim_state = AimState.ROTATING_CCW
-            if event.key == pygame.K_SPACE:
-                self._gun_state = GunState.FIRING
-
     def process_logic(self, tick: float) -> None:
         """Process Turret logic.
 
         :param tick: Current tick in ms.
         """
-        if self._aim_state == AimState.ROTATING_CW:
+        pressed = pygame.key.get_pressed()
+
+        if pressed[pygame.K_UP]:
+            self.speed += SPEED_CONSTANT
+        elif pressed[pygame.K_DOWN]:
+            self.speed -= SPEED_CONSTANT
+
+        if pressed[pygame.K_RIGHT]:
             self.aim = self.aim.rotate(self.AIM_SENSITIVITY)
-        elif self._aim_state == AimState.ROTATING_CCW:
+        elif pressed[pygame.K_LEFT]:
             self.aim = self.aim.rotate(-self.AIM_SENSITIVITY)
 
-        if self._gun_state == GunState.FIRING:
+        if pressed[pygame.K_SPACE]:
             self._fire_gun(tick=tick)

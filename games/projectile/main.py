@@ -1,5 +1,6 @@
 """Define the Main Application class."""
 from functools import cached_property
+from typing import Iterable
 
 import pygame
 from pygame.event import Event
@@ -7,10 +8,24 @@ from pygame.font import SysFont, get_default_font
 from pygame.surface import Surface
 from pygame.time import Clock
 
-from snake.experimental.projectile import ProjectileManager
-from snake.experimental.terrain import Blueprint, Terrain
-from snake.experimental.turret import Turret
-from snake.experimental.utils import time_ms
+from games.projectile.projectile import ProjectileManager
+from games.projectile.settings import (
+    BG_COLOR,
+    CAPTION,
+    FPS_COLOR,
+    FPS_SIZE,
+    GRID_ALPHA,
+    GRID_COLOR,
+    GRID_WIDTH,
+    MAX_FRAMESKIP,
+    PIXEL_SIZE,
+    SPEED_CONSTANT,
+    TICK_TIME,
+)
+from games.projectile.terrain import Blueprint, Terrain
+from games.projectile.turret import Turret
+from games.snake.settings import DEBUG_COLOR
+from games.utils import Layer, multi_text, time_ms
 
 
 class QuitApplication(Exception):
@@ -19,26 +34,6 @@ class QuitApplication(Exception):
 
 class MainApp:
     """Main Application."""
-
-    #: Screen/Window parameters.
-    CAPTION = "Experimental v0.1"
-    BG_COLOR = (0x00, 0x00, 0x00)
-
-    FPS_SIZE = 25
-    FPS_COLOR = (0xFF, 0x00, 0x00)
-
-    #: Grid Parameters
-    GRID_COLOR = (0xFF, 0xFF, 0xFF)
-    GRID_WIDTH = 1
-    GRID_ALPHA = 50
-
-    #: Difference in time between ticks
-    TICK_STEP = 10.0  # ms
-
-    #: Max number of rendered frames that can be skipped. This is mostly
-    #  relevant on slower machines, in case the time it takes to update the
-    #  game state is greater than `TICK_STEP`.
-    MAX_FRAMESKIP = 10
 
     def __init__(self, bp_name: str, debug: bool, grid: bool, show_fps: bool):
         """Main Application.
@@ -50,11 +45,11 @@ class MainApp:
         """
         self._debug = debug
         self._grid = grid
-        self._show_fps = show_fps
+        self._show_fps = show_fps and not debug
 
         # Init PyGame
         pygame.init()
-        pygame.display.set_caption(self.CAPTION)
+        pygame.display.set_caption(CAPTION)
 
         # Application Variables
         self._next_tick = time_ms()
@@ -66,7 +61,7 @@ class MainApp:
 
         self._screen = pygame.display.set_mode(size=self._blueprint.rect.size)
 
-        self._fps_font = SysFont(get_default_font(), self.FPS_SIZE)
+        self._fps_font = SysFont(get_default_font(), FPS_SIZE)
 
         self._terrain = Terrain(blueprint=self._blueprint)
 
@@ -74,10 +69,26 @@ class MainApp:
         self._hero = Turret(blueprint=self._blueprint, pm=self._proj_mgmt)
 
     @property
+    def _debug_surface(self) -> Iterable[Layer]:
+        """Debug Message Layers."""
+        msgs = [
+            f"FPS: {self._render_clock.get_fps()}",
+            f"Block Size (m): {self._blueprint.block_size * PIXEL_SIZE}",
+            f"Width: {self._blueprint.width * PIXEL_SIZE} m",
+            f"Height: {self._blueprint.height * PIXEL_SIZE} m",
+            f"Initial Speed: {self._hero.speed / SPEED_CONSTANT} m/s",
+        ]
+        latest = self._proj_mgmt.latest
+        if latest:
+            msgs.append(f"Proj. Velocity: {latest.velocity}")
+
+        return multi_text(font=self._fps_font, color=DEBUG_COLOR, msgs=msgs)
+
+    @property
     def _fps_surface(self) -> Surface:
         """FPS Meter Surface."""
         msg = f"FPS: {self._render_clock.get_fps()}"
-        return self._fps_font.render(msg, True, self.FPS_COLOR)
+        return self._fps_font.render(msg, True, FPS_COLOR)
 
     @cached_property
     def _grid_surface(self) -> Surface:
@@ -85,14 +96,14 @@ class MainApp:
         block_size = self._blueprint.block_size
         size = self._blueprint.rect.size
         surface = Surface(size=size, flags=pygame.SRCALPHA)
-        surface.set_alpha(self.GRID_ALPHA)
+        surface.set_alpha(GRID_ALPHA)
         for x in range(0, size[0], int(block_size.x)):
             for y in range(0, size[1], int(block_size.y)):
                 pygame.draw.rect(
                     surface=surface,
-                    color=self.GRID_COLOR,
+                    color=GRID_COLOR,
                     rect=pygame.Rect((x, y), self._blueprint.block_size),
-                    width=self.GRID_WIDTH,
+                    width=GRID_WIDTH,
                 )
 
         return surface
@@ -114,15 +125,14 @@ class MainApp:
         """
         for event in pygame.event.get():
             self._handle_quit(event=event)
-            self._hero.handle_event(event=event)
 
         self._hero.process_logic(tick=tick)
         self._proj_mgmt.process_logic()
 
     def _calc_interpolation(self) -> float:
         """Calculate the Interpolation between game ticks."""
-        next_prediction = time_ms() + self.TICK_STEP - self._next_tick
-        interp = next_prediction / self.TICK_STEP
+        next_prediction = time_ms() + TICK_TIME - self._next_tick
+        interp = next_prediction / TICK_TIME
         return max(min(interp, 1.0), 0.0)  # Clip between 0 and 1
 
     def _render_graphics(self, interp: float) -> None:
@@ -139,10 +149,13 @@ class MainApp:
         if self._grid:
             layers.append((self._grid_surface, (0, 0)))
 
+        if self._debug:
+            layers.extend(self._debug_surface)
+
         if self._show_fps:
             layers.append((self._fps_surface, (0, 0)))
 
-        self._screen.fill(color=self.BG_COLOR)
+        self._screen.fill(color=BG_COLOR)
         self._screen.blits(layers)
         pygame.display.flip()
         self._render_clock.tick()
@@ -151,9 +164,9 @@ class MainApp:
         """Main Application Loop."""
         loops = 0
         current_tick = time_ms()
-        while current_tick > self._next_tick and loops < self.MAX_FRAMESKIP:
+        while current_tick > self._next_tick and loops < MAX_FRAMESKIP:
             self._update_game(tick=current_tick)
-            self._next_tick += self.TICK_STEP
+            self._next_tick += TICK_TIME
             loops += 1
 
         interpolation = self._calc_interpolation()

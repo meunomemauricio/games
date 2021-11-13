@@ -3,9 +3,9 @@ from typing import Iterable
 
 from pygame.surface import Surface
 
-from snake.grid import Grid
-from snake.settings import SCREEN_WIDTH, UI_HEIGHT
-from snake.utils import Layer, Position
+from games.snake.grid import Grid
+from games.snake.settings import SCREEN_WIDTH, UI_HEIGHT
+from games.utils import Layer, Position
 
 
 class UserInterface:
