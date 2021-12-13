@@ -1,4 +1,5 @@
 """Main Application."""
+from functools import cached_property
 from itertools import chain
 from typing import Iterable
 
@@ -56,7 +57,8 @@ class MainApp(GameApplication):
             ),
         )
 
-    def _create_screen(self) -> Surface:
+    @cached_property
+    def _screen(self) -> Surface:
         return pygame.display.set_mode(
             size=SCREEN_SIZE,
             flags=pygame.SCALED,

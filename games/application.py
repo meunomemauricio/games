@@ -1,6 +1,5 @@
 """Interfaces for game Applications."""
 from abc import ABC, abstractmethod
-from typing import Optional
 
 import pygame
 from pygame.event import Event
@@ -28,7 +27,7 @@ class QuitApplication(Exception):
 class GameApplication(ABC):
     """Generic Game Application."""
 
-    #: Applicaton Caption.
+    #: Application Caption.
     CAPTION = None
 
     #: Max number of rendered frames that can be skipped. This is mostly
@@ -51,13 +50,16 @@ class GameApplication(ABC):
         self._next_tick = time_ms()
         self._render_clock = Clock()
         self._running = True
-        self._screen: Optional[Surface] = None
 
     # Interface
 
+    @property
     @abstractmethod
-    def _create_screen(self) -> Surface:
-        """Create the Screen instance."""
+    def _screen(self) -> Surface:
+        """Screen instance.
+
+        Should be implemented as a `cached_property`.
+        """
 
     @abstractmethod
     def _handle_events(self, event: Event) -> None:
@@ -120,7 +122,6 @@ class GameApplication(ABC):
 
     def run(self) -> None:
         """Run the application."""
-        self._screen = self._create_screen()
         while True:
             try:
                 self._main_loop()

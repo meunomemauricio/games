@@ -96,8 +96,9 @@ class MainApp(GameApplication):
 
         return surface
 
-    def _create_screen(self) -> Surface:
-        """Create screen surface based on the Blueprint."""
+    @cached_property
+    def _screen(self) -> Surface:
+        """Screen surface based on the Blueprint."""
         return pygame.display.set_mode(size=self._blueprint.rect.size)
 
     def _handle_events(self, event: Event) -> None:
